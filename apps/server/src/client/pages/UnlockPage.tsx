@@ -1,27 +1,27 @@
-import { useState } from 'react';
-import { api } from '../lib/api';
+import { useState } from 'react'
+import { api } from '../lib/api'
 
 export function UnlockPage({ onComplete }: { onComplete: () => void }) {
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
 
-    const formData = new FormData(e.currentTarget);
-    const password = formData.get('password') as string;
+    const formData = new FormData(e.currentTarget)
+    const password = formData.get('password') as string
 
     try {
-      await api.unlock(password);
-      onComplete();
+      await api.unlock(password)
+      onComplete()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to unlock');
+      setError(err instanceof Error ? err.message : 'Failed to unlock')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -58,5 +58,5 @@ export function UnlockPage({ onComplete }: { onComplete: () => void }) {
         </form>
       </div>
     </div>
-  );
+  )
 }

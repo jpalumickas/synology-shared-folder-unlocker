@@ -3,7 +3,7 @@ import type {
   EncryptedShareFolder,
   ShareFolderStatus,
   AppStatus,
-} from '@synology-shared-folder-unlocker/config';
+} from '@synology-shared-folder-unlocker/config'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -12,15 +12,15 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
       'Content-Type': 'application/json',
       ...options?.headers,
     },
-  });
+  })
 
-  const data = await res.json();
+  const data = await res.json()
 
   if (!res.ok) {
-    throw new Error(data.error || 'Request failed');
+    throw new Error(data.error || 'Request failed')
   }
 
-  return data as T;
+  return data as T
 }
 
 export const api = {
@@ -66,30 +66,40 @@ export const api = {
   updateShareFolder: (
     nasId: string,
     shareFolderId: string,
-    data: Partial<EncryptedShareFolder>,
+    data: Partial<EncryptedShareFolder>
   ) =>
-    request<EncryptedShareFolder>(`/nas/${nasId}/share-folders/${shareFolderId}`, {
-      method: 'PUT',
-      body: JSON.stringify(data),
-    }),
+    request<EncryptedShareFolder>(
+      `/nas/${nasId}/share-folders/${shareFolderId}`,
+      {
+        method: 'PUT',
+        body: JSON.stringify(data),
+      }
+    ),
 
   deleteShareFolder: (nasId: string, shareFolderId: string) =>
-    request<{ success: boolean }>(`/nas/${nasId}/share-folders/${shareFolderId}`, {
-      method: 'DELETE',
-    }),
+    request<{ success: boolean }>(
+      `/nas/${nasId}/share-folders/${shareFolderId}`,
+      {
+        method: 'DELETE',
+      }
+    ),
 
   unlockShareFolder: (nasId: string, shareFolderId: string) =>
     request<{ success: boolean; message: string }>(
       `/nas/${nasId}/share-folders/${shareFolderId}/unlock`,
-      { method: 'POST' },
+      { method: 'POST' }
     ),
 
-  getShareFolderStatuses: () => request<ShareFolderStatus[]>('/share-folders/status'),
+  getShareFolderStatuses: () =>
+    request<ShareFolderStatus[]>('/share-folders/status'),
 
   pollNow: () =>
-    request<{ success: boolean; statuses: ShareFolderStatus[] }>('/share-folders/poll', {
-      method: 'POST',
-    }),
+    request<{ success: boolean; statuses: ShareFolderStatus[] }>(
+      '/share-folders/poll',
+      {
+        method: 'POST',
+      }
+    ),
 
   getSettings: () => request<{ pollingInterval: number }>('/settings'),
 
@@ -98,4 +108,4 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
-};
+}

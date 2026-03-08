@@ -1,37 +1,37 @@
-import { useState } from 'react';
-import { api } from '../lib/api';
+import { useState } from 'react'
+import { api } from '../lib/api'
 
 export function InitPage({ onComplete }: { onComplete: () => void }) {
-  const [error, setError] = useState('');
-  const [loading, setLoading] = useState(false);
+  const [error, setError] = useState('')
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault();
-    setError('');
+    e.preventDefault()
+    setError('')
 
-    const formData = new FormData(e.currentTarget);
-    const password = formData.get('password') as string;
-    const confirm = formData.get('confirm') as string;
+    const formData = new FormData(e.currentTarget)
+    const password = formData.get('password') as string
+    const confirm = formData.get('confirm') as string
 
     if (!password || password.length < 8) {
-      setError('Password must be at least 8 characters');
-      return;
+      setError('Password must be at least 8 characters')
+      return
     }
     if (password !== confirm) {
-      setError('Passwords do not match');
-      return;
+      setError('Passwords do not match')
+      return
     }
 
-    setLoading(true);
+    setLoading(true)
     try {
-      await api.init(password);
-      onComplete();
+      await api.init(password)
+      onComplete()
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to initialize');
+      setError(err instanceof Error ? err.message : 'Failed to initialize')
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <div className="min-h-screen flex items-center justify-center bg-gray-50">
@@ -81,5 +81,5 @@ export function InitPage({ onComplete }: { onComplete: () => void }) {
         </form>
       </div>
     </div>
-  );
+  )
 }

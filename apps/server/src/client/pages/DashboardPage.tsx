@@ -1,6 +1,9 @@
-import { useState, useEffect, useCallback } from 'react';
-import { api } from '../lib/api';
-import type { NasDevice, ShareFolderStatus } from '@synology-shared-folder-unlocker/config';
+import { useState, useEffect, useCallback } from 'react'
+import { api } from '../lib/api'
+import type {
+  NasDevice,
+  ShareFolderStatus,
+} from '@synology-shared-folder-unlocker/config'
 
 // --- Modal ---
 
@@ -10,12 +13,12 @@ function Modal({
   title,
   children,
 }: {
-  open: boolean;
-  onClose: () => void;
-  title: string;
-  children: React.ReactNode;
+  open: boolean
+  onClose: () => void
+  title: string
+  children: React.ReactNode
 }) {
-  if (!open) return null;
+  if (!open) return null
   return (
     <div
       className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
@@ -37,7 +40,7 @@ function Modal({
         <div className="p-4">{children}</div>
       </div>
     </div>
-  );
+  )
 }
 
 // --- Status Badge ---
@@ -48,14 +51,14 @@ function StatusBadge({ status }: { status: ShareFolderStatus['status'] }) {
     locked: 'bg-red-500',
     unlocked: 'bg-green-500',
     error: 'bg-amber-500',
-  };
+  }
 
   return (
     <span className="inline-flex items-center gap-1.5 text-sm">
       <span className={`w-2.5 h-2.5 rounded-full ${colors[status]}`} />
       {status}
     </span>
-  );
+  )
 }
 
 // --- NAS Form ---
@@ -65,32 +68,32 @@ function NasForm({
   onSubmit,
   onCancel,
 }: {
-  initial?: NasDevice;
-  onSubmit: (data: Omit<NasDevice, 'id' | 'shareFolders'>) => Promise<void>;
-  onCancel: () => void;
+  initial?: NasDevice
+  onSubmit: (data: Omit<NasDevice, 'id' | 'shareFolders'>) => Promise<void>
+  onCancel: () => void
 }) {
-  const [name, setName] = useState(initial?.name ?? '');
-  const [host, setHost] = useState(initial?.host ?? '');
-  const [port, setPort] = useState(initial?.port ?? 22);
-  const [username, setUsername] = useState(initial?.username ?? '');
-  const [password, setPassword] = useState(initial?.password ?? '');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [name, setName] = useState(initial?.name ?? '')
+  const [host, setHost] = useState(initial?.host ?? '')
+  const [port, setPort] = useState(initial?.port ?? 22)
+  const [username, setUsername] = useState(initial?.username ?? '')
+  const [password, setPassword] = useState(initial?.password ?? '')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
     try {
-      await onSubmit({ name, host, port, username, password });
+      await onSubmit({ name, host, port, username, password })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed');
-      setLoading(false);
+      setError(err instanceof Error ? err.message : 'Failed')
+      setLoading(false)
     }
-  };
+  }
 
   const inputClass =
-    'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+    'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -171,7 +174,7 @@ function NasForm({
         </button>
       </div>
     </form>
-  );
+  )
 }
 
 // --- Share Folder Form ---
@@ -181,29 +184,29 @@ function ShareFolderForm({
   onSubmit,
   onCancel,
 }: {
-  initial?: { name: string; password: string };
-  onSubmit: (data: { name: string; password: string }) => Promise<void>;
-  onCancel: () => void;
+  initial?: { name: string; password: string }
+  onSubmit: (data: { name: string; password: string }) => Promise<void>
+  onCancel: () => void
 }) {
-  const [name, setName] = useState(initial?.name ?? '');
-  const [password, setPassword] = useState(initial?.password ?? '');
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState('');
+  const [name, setName] = useState(initial?.name ?? '')
+  const [password, setPassword] = useState(initial?.password ?? '')
+  const [loading, setLoading] = useState(false)
+  const [error, setError] = useState('')
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setError('');
-    setLoading(true);
+    e.preventDefault()
+    setError('')
+    setLoading(true)
     try {
-      await onSubmit({ name, password });
+      await onSubmit({ name, password })
     } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed');
-      setLoading(false);
+      setError(err instanceof Error ? err.message : 'Failed')
+      setLoading(false)
     }
-  };
+  }
 
   const inputClass =
-    'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500';
+    'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -252,27 +255,29 @@ function ShareFolderForm({
         </button>
       </div>
     </form>
-  );
+  )
 }
 
 // --- Dashboard Page ---
 
 export function DashboardPage({ onLock }: { onLock: () => void }) {
-  const [nasList, setNasList] = useState<NasDevice[]>([]);
-  const [statuses, setStatuses] = useState<ShareFolderStatus[]>([]);
-  const [pollingInterval, setPollingInterval] = useState(120);
-  const [loading, setLoading] = useState(true);
+  const [nasList, setNasList] = useState<NasDevice[]>([])
+  const [statuses, setStatuses] = useState<ShareFolderStatus[]>([])
+  const [pollingInterval, setPollingInterval] = useState(120)
+  const [loading, setLoading] = useState(true)
 
   // Modal states
-  const [showAddNas, setShowAddNas] = useState(false);
-  const [editingNas, setEditingNas] = useState<NasDevice | null>(null);
-  const [addShareFolderNasId, setAddShareFolderNasId] = useState<string | null>(null);
+  const [showAddNas, setShowAddNas] = useState(false)
+  const [editingNas, setEditingNas] = useState<NasDevice | null>(null)
+  const [addShareFolderNasId, setAddShareFolderNasId] = useState<string | null>(
+    null
+  )
   const [editingShareFolder, setEditingShareFolder] = useState<{
-    nasId: string;
-    shareFolder: { id: string; name: string; password: string };
-  } | null>(null);
-  const [showSettings, setShowSettings] = useState(false);
-  const [polling, setPolling] = useState(false);
+    nasId: string
+    shareFolder: { id: string; name: string; password: string }
+  } | null>(null)
+  const [showSettings, setShowSettings] = useState(false)
+  const [polling, setPolling] = useState(false)
 
   const fetchData = useCallback(async () => {
     try {
@@ -280,120 +285,133 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
         api.getNasList(),
         api.getShareFolderStatuses(),
         api.getSettings(),
-      ]);
-      setNasList(nas);
-      setStatuses(sts);
-      setPollingInterval(settings.pollingInterval);
+      ])
+      setNasList(nas)
+      setStatuses(sts)
+      setPollingInterval(settings.pollingInterval)
     } catch {
       // Session may have expired
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  }, []);
+  }, [])
 
   useEffect(() => {
-    fetchData();
-  }, [fetchData]);
+    fetchData()
+  }, [fetchData])
 
   // Auto-refresh statuses every 10s
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const sts = await api.getShareFolderStatuses();
-        setStatuses(sts);
+        const sts = await api.getShareFolderStatuses()
+        setStatuses(sts)
       } catch {
         /* ignore */
       }
-    }, 10_000);
-    return () => clearInterval(interval);
-  }, []);
+    }, 10_000)
+    return () => clearInterval(interval)
+  }, [])
 
   const getShareFolderStatus = (nasId: string, shareFolderId: string) =>
-    statuses.find((s) => s.nasId === nasId && s.shareFolderId === shareFolderId);
+    statuses.find((s) => s.nasId === nasId && s.shareFolderId === shareFolderId)
 
   const handleLock = async () => {
-    await api.lock();
-    onLock();
-  };
+    await api.lock()
+    onLock()
+  }
 
   const handlePollNow = async () => {
-    setPolling(true);
+    setPolling(true)
     try {
-      const result = await api.pollNow();
-      setStatuses(result.statuses);
+      const result = await api.pollNow()
+      setStatuses(result.statuses)
     } catch {
       /* ignore */
     } finally {
-      setPolling(false);
+      setPolling(false)
     }
-  };
+  }
 
-  const handleAddNas = async (
-    data: Omit<NasDevice, 'id' | 'shareFolders'>,
+  const handleAddNas = async (data: Omit<NasDevice, 'id' | 'shareFolders'>) => {
+    await api.addNas(data)
+    setShowAddNas(false)
+    fetchData()
+  }
+
+  const handleUpdateNas = async (
+    data: Omit<NasDevice, 'id' | 'shareFolders'>
   ) => {
-    await api.addNas(data);
-    setShowAddNas(false);
-    fetchData();
-  };
-
-  const handleUpdateNas = async (data: Omit<NasDevice, 'id' | 'shareFolders'>) => {
-    if (!editingNas) return;
-    await api.updateNas(editingNas.id, data);
-    setEditingNas(null);
-    fetchData();
-  };
+    if (!editingNas) return
+    await api.updateNas(editingNas.id, data)
+    setEditingNas(null)
+    fetchData()
+  }
 
   const handleDeleteNas = async (id: string) => {
-    if (!confirm('Delete this NAS device and all its share folders?')) return;
-    await api.deleteNas(id);
-    fetchData();
-  };
+    if (!confirm('Delete this NAS device and all its share folders?')) return
+    await api.deleteNas(id)
+    fetchData()
+  }
 
-  const handleAddShareFolder = async (data: { name: string; password: string }) => {
-    if (!addShareFolderNasId) return;
-    await api.addShareFolder(addShareFolderNasId, data);
-    setAddShareFolderNasId(null);
-    fetchData();
-  };
+  const handleAddShareFolder = async (data: {
+    name: string
+    password: string
+  }) => {
+    if (!addShareFolderNasId) return
+    await api.addShareFolder(addShareFolderNasId, data)
+    setAddShareFolderNasId(null)
+    fetchData()
+  }
 
   const handleUpdateShareFolder = async (data: {
-    name: string;
-    password: string;
+    name: string
+    password: string
   }) => {
-    if (!editingShareFolder) return;
-    await api.updateShareFolder(editingShareFolder.nasId, editingShareFolder.shareFolder.id, data);
-    setEditingShareFolder(null);
-    fetchData();
-  };
+    if (!editingShareFolder) return
+    await api.updateShareFolder(
+      editingShareFolder.nasId,
+      editingShareFolder.shareFolder.id,
+      data
+    )
+    setEditingShareFolder(null)
+    fetchData()
+  }
 
-  const handleDeleteShareFolder = async (nasId: string, shareFolderId: string) => {
-    if (!confirm('Delete this share folder?')) return;
-    await api.deleteShareFolder(nasId, shareFolderId);
-    fetchData();
-  };
+  const handleDeleteShareFolder = async (
+    nasId: string,
+    shareFolderId: string
+  ) => {
+    if (!confirm('Delete this share folder?')) return
+    await api.deleteShareFolder(nasId, shareFolderId)
+    fetchData()
+  }
 
-  const handleUnlockShareFolder = async (nasId: string, shareFolderId: string) => {
+  const handleUnlockShareFolder = async (
+    nasId: string,
+    shareFolderId: string
+  ) => {
     try {
-      await api.unlockShareFolder(nasId, shareFolderId);
-      const sts = await api.getShareFolderStatuses();
-      setStatuses(sts);
+      await api.unlockShareFolder(nasId, shareFolderId)
+      const sts = await api.getShareFolderStatuses()
+      setStatuses(sts)
     } catch {
       /* ignore */
     }
-  };
+  }
 
   const handleSaveSettings = async (interval: number) => {
-    await api.updateSettings({ pollingInterval: interval });
-    setPollingInterval(interval);
-    setShowSettings(false);
-  };
+    await api.updateSettings({ pollingInterval: interval })
+    setPollingInterval(interval)
+    setShowSettings(false)
+  }
 
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-gray-50">
         <p className="text-gray-500">Loading...</p>
       </div>
-    );
+    )
   }
 
   return (
@@ -487,7 +505,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
                 ) : (
                   <div className="divide-y">
                     {nas.shareFolders.map((shareFolder) => {
-                      const st = getShareFolderStatus(nas.id, shareFolder.id);
+                      const st = getShareFolderStatus(nas.id, shareFolder.id)
                       return (
                         <div
                           key={shareFolder.id}
@@ -514,7 +532,10 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
                             {st?.status !== 'unlocked' && (
                               <button
                                 onClick={() =>
-                                  handleUnlockShareFolder(nas.id, shareFolder.id)
+                                  handleUnlockShareFolder(
+                                    nas.id,
+                                    shareFolder.id
+                                  )
                                 }
                                 className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded hover:bg-green-100 cursor-pointer"
                               >
@@ -523,7 +544,10 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
                             )}
                             <button
                               onClick={() =>
-                                setEditingShareFolder({ nasId: nas.id, shareFolder })
+                                setEditingShareFolder({
+                                  nasId: nas.id,
+                                  shareFolder,
+                                })
                               }
                               className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer"
                             >
@@ -539,7 +563,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
                             </button>
                           </div>
                         </div>
-                      );
+                      )
                     })}
                   </div>
                 )}
@@ -549,8 +573,8 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
         )}
 
         <p className="text-xs text-gray-400 mt-6 text-center">
-          Polling every {pollingInterval}s. Share folders are checked and automatically
-          unlocked in the background.
+          Polling every {pollingInterval}s. Share folders are checked and
+          automatically unlocked in the background.
         </p>
       </main>
 
@@ -617,7 +641,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
         />
       </Modal>
     </div>
-  );
+  )
 }
 
 // --- Settings Form ---
@@ -627,22 +651,22 @@ function SettingsForm({
   onSubmit,
   onCancel,
 }: {
-  initialInterval: number;
-  onSubmit: (interval: number) => Promise<void>;
-  onCancel: () => void;
+  initialInterval: number
+  onSubmit: (interval: number) => Promise<void>
+  onCancel: () => void
 }) {
-  const [interval, setInterval] = useState(initialInterval);
-  const [loading, setLoading] = useState(false);
+  const [interval, setInterval] = useState(initialInterval)
+  const [loading, setLoading] = useState(false)
 
   const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault();
-    setLoading(true);
+    e.preventDefault()
+    setLoading(true)
     try {
-      await onSubmit(interval);
+      await onSubmit(interval)
     } finally {
-      setLoading(false);
+      setLoading(false)
     }
-  };
+  }
 
   return (
     <form onSubmit={handleSubmit} className="space-y-3">
@@ -678,5 +702,5 @@ function SettingsForm({
         </button>
       </div>
     </form>
-  );
+  )
 }
