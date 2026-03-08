@@ -3,6 +3,7 @@
   "version": "0.1.0",
   "private": true,
   "type": "module",
+  "license": "MIT",
   "scripts": {
     "dev": "pnpm --filter @synology-shared-folder-unlocker/server dev",
     "build": "pnpm --filter @synology-shared-folder-unlocker/server build",
