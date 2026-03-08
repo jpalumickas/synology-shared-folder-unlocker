@@ -14,6 +14,7 @@ function shellEscape(str: string): string {
 function executeCommand(
   nas: NasDevice,
   command: string,
+  stdinData?: string,
 ): Promise<CommandResult> {
   return new Promise((resolve, reject) => {
     const conn = new Client();
@@ -45,6 +46,11 @@ function executeCommand(
           conn.end();
           resolve({ stdout, stderr, code: code ?? 0 });
         });
+
+        if (stdinData !== undefined) {
+          stream.write(stdinData + '\n');
+          stream.end();
+        }
       });
     });
 
@@ -63,14 +69,18 @@ function executeCommand(
   });
 }
 
+function sudoCommand(nas: NasDevice, command: string): Promise<CommandResult> {
+  return executeCommand(nas, `sudo -S ${command} 2>&1`, nas.password);
+}
+
 export async function checkShareStatus(
   nas: NasDevice,
   share: EncryptedShare,
 ): Promise<'locked' | 'unlocked' | 'error'> {
   try {
-    const result = await executeCommand(
+    const result = await sudoCommand(
       nas,
-      `sudo /usr/syno/sbin/synoshare --enc_get_info ${shellEscape(share.name)} 2>&1 || true`,
+      `/usr/syno/sbin/synoshare --enc_get_info ${shellEscape(share.name)}`,
     );
     const output = result.stdout + result.stderr;
 
@@ -106,9 +116,9 @@ export async function unlockShare(
   share: EncryptedShare,
 ): Promise<{ success: boolean; message: string }> {
   try {
-    const result = await executeCommand(
+    const result = await sudoCommand(
       nas,
-      `sudo /usr/syno/sbin/synoshare --enc_mount ${shellEscape(share.name)} ${shellEscape(share.password)} 2>&1`,
+      `/usr/syno/sbin/synoshare --enc_mount ${shellEscape(share.name)} ${shellEscape(share.password)}`,
     );
 
     const output = result.stdout + result.stderr;

@@ -2,16 +2,18 @@ import { useState } from 'react';
 import { api } from '../lib/api';
 
 export function InitPage({ onComplete }: { onComplete: () => void }) {
-  const [password, setPassword] = useState('');
-  const [confirm, setConfirm] = useState('');
   const [error, setError] = useState('');
   const [loading, setLoading] = useState(false);
 
-  const handleSubmit = async (e: React.FormEvent) => {
+  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
     e.preventDefault();
     setError('');
 
-    if (password.length < 8) {
+    const formData = new FormData(e.currentTarget);
+    const password = formData.get('password') as string;
+    const confirm = formData.get('confirm') as string;
+
+    if (!password || password.length < 8) {
       setError('Password must be at least 8 characters');
       return;
     }
@@ -47,9 +49,8 @@ export function InitPage({ onComplete }: { onComplete: () => void }) {
               Master Password
             </label>
             <input
+              name="password"
               type="password"
-              value={password}
-              onChange={(e) => setPassword(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="At least 8 characters"
               autoFocus
@@ -61,9 +62,8 @@ export function InitPage({ onComplete }: { onComplete: () => void }) {
               Confirm Password
             </label>
             <input
+              name="confirm"
               type="password"
-              value={confirm}
-              onChange={(e) => setConfirm(e.target.value)}
               className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
               placeholder="Re-enter password"
             />
