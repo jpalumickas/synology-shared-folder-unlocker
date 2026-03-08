@@ -1,12 +1,12 @@
 {
-  "name": "synology-shared-drives-unlocker",
+  "name": "@synology-shared-folder-unlocker/monorepo",
   "version": "0.1.0",
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm --filter @synology-unlocker/server dev",
-    "build": "pnpm --filter @synology-unlocker/server build",
-    "start": "pnpm --filter @synology-unlocker/server start",
+    "dev": "pnpm --filter @synology-shared-folder-unlocker/server dev",
+    "build": "pnpm --filter @synology-shared-folder-unlocker/server build",
+    "start": "pnpm --filter @synology-shared-folder-unlocker/server start",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:watch": "vitest",

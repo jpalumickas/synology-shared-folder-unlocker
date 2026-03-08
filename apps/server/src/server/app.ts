@@ -10,13 +10,13 @@ import {
   restartPoller,
   pollOnce,
   unlockShareFolder,
-} from '@synology-unlocker/unlocker';
+} from '@synology-shared-folder-unlocker/unlocker';
 import {
   saveConfig,
   loadConfig,
   configExists,
-} from '@synology-unlocker/config';
-import type { AppConfig, NasDevice, EncryptedShareFolder } from '@synology-unlocker/config';
+} from '@synology-shared-folder-unlocker/config';
+import type { AppConfig, NasDevice, EncryptedShareFolder } from '@synology-shared-folder-unlocker/config';
 
 const app = new Hono();
 const api = new Hono();

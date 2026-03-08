@@ -3,7 +3,7 @@ import type {
   EncryptedShareFolder,
   ShareFolderStatus,
   AppStatus,
-} from '@synology-unlocker/config';
+} from '@synology-shared-folder-unlocker/config';
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {

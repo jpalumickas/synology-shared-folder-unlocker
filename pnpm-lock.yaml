@@ -26,10 +26,10 @@ importers:
       '@hono/node-server':
         specifier: ^1.14.0
         version: 1.19.11(hono@4.12.5)
-      '@synology-unlocker/config':
+      '@synology-shared-folder-unlocker/config':
         specifier: workspace:*
         version: link:../../packages/config
-      '@synology-unlocker/unlocker':
+      '@synology-shared-folder-unlocker/unlocker':
         specifier: workspace:*
         version: link:../../packages/unlocker
       hono:
@@ -84,7 +84,7 @@ importers:
 
   packages/unlocker:
     dependencies:
-      '@synology-unlocker/config':
+      '@synology-shared-folder-unlocker/config':
         specifier: workspace:*
         version: link:../config
       ssh2:

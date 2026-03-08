@@ -1,5 +1,5 @@
 import { randomBytes } from 'node:crypto';
-import type { AppConfig, EncryptedShareFolder, ShareFolderStatus } from '@synology-unlocker/config';
+import type { AppConfig, EncryptedShareFolder, ShareFolderStatus } from '@synology-shared-folder-unlocker/config';
 
 class Store {
   private config: AppConfig | null = null;

@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../lib/api';
-import type { NasDevice, ShareFolderStatus } from '@synology-unlocker/config';
+import type { NasDevice, ShareFolderStatus } from '@synology-shared-folder-unlocker/config';
 
 // --- Modal ---
 

@@ -1,5 +1,5 @@
 import { Client } from 'ssh2';
-import type { NasDevice, EncryptedShareFolder } from '@synology-unlocker/config';
+import type { NasDevice, EncryptedShareFolder } from '@synology-shared-folder-unlocker/config';
 
 interface CommandResult {
   stdout: string;
@@ -88,16 +88,16 @@ export async function checkShareFolderStatus(
       return 'error';
     }
 
-    if (output.includes('Mounted') || output.includes('mounted')) {
-      return 'unlocked';
-    }
-
     if (
       output.includes('Not Mounted') ||
       output.includes('not mounted') ||
       output.includes('Unmounted')
     ) {
       return 'locked';
+    }
+
+    if (output.includes('Mounted') || output.includes('mounted')) {
+      return 'unlocked';
     }
 
     // Fallback: check if share folder directory has contents
