@@ -6,7 +6,8 @@ import {
 } from 'node:crypto'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
-import { dirname } from 'node:path'
+import { dirname, join } from 'node:path'
+import { homedir } from 'node:os'
 
 const ALGORITHM = 'aes-256-gcm'
 const KEY_LENGTH = 32
@@ -72,7 +73,13 @@ function decrypt(enc: EncryptedData, password: string): string {
   return decipher.update(data).toString('utf8') + decipher.final('utf8')
 }
 
-const CONFIG_PATH = process.env.CONFIG_PATH || './data/config.enc'
+const DEFAULT_DATA_DIR = join(
+  homedir(),
+  '.config',
+  'synology-shared-folder-unlocker'
+)
+const DATA_DIR = process.env.DATA_PATH || DEFAULT_DATA_DIR
+const CONFIG_PATH = join(DATA_DIR, 'config.enc')
 
 export async function configExists(): Promise<boolean> {
   return existsSync(CONFIG_PATH)

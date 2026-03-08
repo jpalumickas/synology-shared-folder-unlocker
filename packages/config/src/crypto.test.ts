@@ -6,7 +6,6 @@ import { tmpdir } from 'node:os'
 import type { AppConfig } from './types.js'
 
 let tmpDir: string
-let configPath: string
 let originalEnv: string | undefined
 
 async function loadModule() {
@@ -16,13 +15,12 @@ async function loadModule() {
 
 beforeEach(async () => {
   tmpDir = await mkdtemp(join(tmpdir(), 'config-test-'))
-  configPath = join(tmpDir, 'config.enc')
-  originalEnv = process.env.CONFIG_PATH
-  process.env.CONFIG_PATH = configPath
+  originalEnv = process.env.DATA_PATH
+  process.env.DATA_PATH = tmpDir
 })
 
 afterEach(async () => {
-  process.env.CONFIG_PATH = originalEnv
+  process.env.DATA_PATH = originalEnv
   await rm(tmpDir, { recursive: true, force: true })
 })
 
@@ -63,12 +61,12 @@ describe('saveConfig / loadConfig', () => {
   })
 
   it('creates the directory if it does not exist', async () => {
-    const nested = join(tmpDir, 'a', 'b', 'config.enc')
-    process.env.CONFIG_PATH = nested
+    const nestedDir = join(tmpDir, 'a', 'b')
+    process.env.DATA_PATH = nestedDir
 
     const { saveConfig } = await loadModule()
     await saveConfig({ pollingInterval: 120, nasList: [] }, 'pw')
-    expect(existsSync(nested)).toBe(true)
+    expect(existsSync(join(nestedDir, 'config.enc'))).toBe(true)
   })
 
   it('throws when loading with wrong password', async () => {
@@ -86,11 +84,13 @@ describe('saveConfig / loadConfig', () => {
     const { saveConfig } = await loadModule()
     const config = { pollingInterval: 120, nasList: [] }
 
-    await saveConfig(config, 'pw')
-    const first = await readFile(configPath, 'utf8')
+    const configFile = join(tmpDir, 'config.enc')
 
     await saveConfig(config, 'pw')
-    const second = await readFile(configPath, 'utf8')
+    const first = await readFile(configFile, 'utf8')
+
+    await saveConfig(config, 'pw')
+    const second = await readFile(configFile, 'utf8')
 
     expect(first).not.toBe(second)
   })
