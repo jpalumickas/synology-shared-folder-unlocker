@@ -23,8 +23,11 @@ export function App() {
   switch (view) {
     case 'loading':
       return (
-        <div className="min-h-screen flex items-center justify-center bg-gray-50">
-          <p className="text-gray-500">Loading...</p>
+        <div className="min-h-screen flex items-center justify-center bg-background">
+          <div className="flex flex-col items-center gap-3">
+            <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+            <p className="text-sm text-muted-foreground">Loading...</p>
+          </div>
         </div>
       )
     case 'init':

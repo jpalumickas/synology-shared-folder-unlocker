@@ -1,62 +1,101 @@
 import { useState } from 'react'
+import { z } from 'zod'
+import {
+  Button,
+  Card,
+  CardContent,
+  CardDescription,
+  CardHeader,
+  CardTitle,
+  Input,
+} from '@synology-shared-folder-unlocker/theme'
+import { LockKeyhole } from 'lucide-react'
 import { api } from '../lib/api'
+import { useAppForm, getFieldError } from '../hooks/form/useForm'
+import { FormWrapper } from '../components/FormWrapper'
 
 export function UnlockPage({ onComplete }: { onComplete: () => void }) {
-  const [error, setError] = useState('')
-  const [loading, setLoading] = useState(false)
+  const [submitError, setSubmitError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent<HTMLFormElement>) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-
-    const formData = new FormData(e.currentTarget)
-    const password = formData.get('password') as string
-
-    try {
-      await api.unlock(password)
-      onComplete()
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed to unlock')
-    } finally {
-      setLoading(false)
-    }
-  }
+  const form = useAppForm({
+    defaultValues: {
+      password: '',
+    },
+    validators: {
+      onSubmit: z.object({
+        password: z.string().min(1, 'Password is required'),
+      }),
+    },
+    onSubmit: async ({ value }) => {
+      setSubmitError('')
+      try {
+        await api.unlock(value.password)
+        onComplete()
+      } catch (err) {
+        setSubmitError(err instanceof Error ? err.message : 'Failed to unlock')
+      }
+    },
+  })
 
   return (
-    <div className="min-h-screen flex items-center justify-center bg-gray-50">
-      <div className="bg-white p-8 rounded-lg shadow-md w-full max-w-md">
-        <h1 className="text-2xl font-bold mb-2">
-          Synology Shared Drives Unlocker
-        </h1>
-        <p className="text-gray-600 mb-6">
-          Enter your master password to unlock.
-        </p>
-
-        <form onSubmit={handleSubmit} className="space-y-4">
-          <div>
-            <label className="block text-sm font-medium text-gray-700 mb-1">
-              Master Password
-            </label>
-            <input
-              name="password"
-              type="password"
-              className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-              autoFocus
-            />
+    <div className="min-h-screen flex items-center justify-center bg-background p-4">
+      <Card className="w-full max-w-md">
+        <CardHeader>
+          <div className="flex items-center gap-3">
+            <div className="flex h-10 w-10 shrink-0 items-center justify-center rounded-xl bg-primary/10">
+              <LockKeyhole className="h-5 w-5 text-primary" />
+            </div>
+            <div>
+              <CardTitle>Synology Shared Drives Unlocker</CardTitle>
+              <CardDescription>
+                Enter your master password to unlock.
+              </CardDescription>
+            </div>
           </div>
-
-          {error && <p className="text-red-600 text-sm">{error}</p>}
-
-          <button
-            type="submit"
-            disabled={loading}
-            className="w-full bg-blue-600 text-white py-2 px-4 rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
+        </CardHeader>
+        <CardContent>
+          <form
+            onSubmit={(e) => {
+              e.preventDefault()
+              form.handleSubmit()
+            }}
+            className="space-y-4"
           >
-            {loading ? 'Unlocking...' : 'Unlock'}
-          </button>
-        </form>
-      </div>
+            <form.Field name="password">
+              {(field) => (
+                <FormWrapper
+                  label="Master Password"
+                  error={getFieldError(field)}
+                >
+                  <Input
+                    type="password"
+                    value={field.state.value}
+                    onChange={(e) => field.handleChange(e.target.value)}
+                    onBlur={field.handleBlur}
+                    autoFocus
+                  />
+                </FormWrapper>
+              )}
+            </form.Field>
+
+            {submitError && (
+              <p className="text-sm text-destructive">{submitError}</p>
+            )}
+
+            <form.Subscribe selector={(state) => state.isSubmitting}>
+              {(isSubmitting) => (
+                <Button
+                  type="submit"
+                  className="w-full"
+                  disabled={isSubmitting}
+                >
+                  {isSubmitting ? 'Unlocking...' : 'Unlock'}
+                </Button>
+              )}
+            </form.Subscribe>
+          </form>
+        </CardContent>
+      </Card>
     </div>
   )
 }

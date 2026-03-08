@@ -1,63 +1,67 @@
 import { useState, useEffect, useCallback } from 'react'
+import { z } from 'zod'
+import {
+  Badge,
+  Button,
+  Card,
+  CardAction,
+  CardContent,
+  CardHeader,
+  CardTitle,
+  Dialog,
+  DialogContent,
+  DialogHeader,
+  DialogTitle,
+  Input,
+  Separator,
+  cn,
+} from '@synology-shared-folder-unlocker/theme'
+import {
+  FolderLock,
+  Lock,
+  Pencil,
+  Plus,
+  RefreshCw,
+  Server,
+  Settings,
+  Trash2,
+  Unlock,
+} from 'lucide-react'
 import { api } from '../lib/api'
+import { useAppForm, getFieldError } from '../hooks/form/useForm'
+import { FormWrapper } from '../components/FormWrapper'
 import type {
   NasDevice,
   ShareFolderStatus,
 } from '@synology-shared-folder-unlocker/config'
 
-// --- Modal ---
-
-function Modal({
-  open,
-  onClose,
-  title,
-  children,
-}: {
-  open: boolean
-  onClose: () => void
-  title: string
-  children: React.ReactNode
-}) {
-  if (!open) return null
-  return (
-    <div
-      className="fixed inset-0 bg-black/50 flex items-center justify-center z-50"
-      onClick={onClose}
-    >
-      <div
-        className="bg-white rounded-lg shadow-xl w-full max-w-md mx-4"
-        onClick={(e) => e.stopPropagation()}
-      >
-        <div className="flex justify-between items-center p-4 border-b">
-          <h2 className="text-lg font-semibold">{title}</h2>
-          <button
-            onClick={onClose}
-            className="text-gray-400 hover:text-gray-600 text-2xl leading-none cursor-pointer"
-          >
-            &times;
-          </button>
-        </div>
-        <div className="p-4">{children}</div>
-      </div>
-    </div>
-  )
-}
-
 // --- Status Badge ---
 
 function StatusBadge({ status }: { status: ShareFolderStatus['status'] }) {
-  const colors = {
-    unknown: 'bg-gray-400',
-    locked: 'bg-red-500',
-    unlocked: 'bg-green-500',
-    error: 'bg-amber-500',
-  }
-
   return (
-    <span className="inline-flex items-center gap-1.5 text-sm">
-      <span className={`w-2.5 h-2.5 rounded-full ${colors[status]}`} />
+    <Badge
+      variant="outline"
+      className={cn(
+        'gap-1.5 capitalize',
+        status === 'unlocked' &&
+          'border-green-200 bg-green-50 text-green-700 dark:border-green-800 dark:bg-green-950 dark:text-green-400',
+        status === 'locked' &&
+          'border-red-200 bg-red-50 text-red-700 dark:border-red-800 dark:bg-red-950 dark:text-red-400',
+        status === 'error' &&
+          'border-amber-200 bg-amber-50 text-amber-700 dark:border-amber-800 dark:bg-amber-950 dark:text-amber-400'
+      )}
+    >
+      <span
+        className={cn(
+          'h-1.5 w-1.5 rounded-full',
+          status === 'unlocked' && 'bg-green-500',
+          status === 'locked' && 'bg-red-500',
+          status === 'error' && 'bg-amber-500',
+          status === 'unknown' && 'bg-muted-foreground'
+        )}
+      />
       {status}
-    </span>
+    </Badge>
   )
 }
 
@@ -72,106 +76,123 @@ function NasForm({
   onSubmit: (data: Omit<NasDevice, 'id' | 'shareFolders'>) => Promise<void>
   onCancel: () => void
 }) {
-  const [name, setName] = useState(initial?.name ?? '')
-  const [host, setHost] = useState(initial?.host ?? '')
-  const [port, setPort] = useState(initial?.port ?? 22)
-  const [username, setUsername] = useState(initial?.username ?? '')
-  const [password, setPassword] = useState(initial?.password ?? '')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [submitError, setSubmitError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      await onSubmit({ name, host, port, username, password })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed')
-      setLoading(false)
-    }
-  }
-
-  const inputClass =
-    'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const form = useAppForm({
+    defaultValues: {
+      name: initial?.name ?? '',
+      host: initial?.host ?? '',
+      port: initial?.port ?? 22,
+      username: initial?.username ?? '',
+      password: initial?.password ?? '',
+    },
+    validators: {
+      onSubmit: z.object({
+        name: z.string().min(1, 'Name is required'),
+        host: z.string().min(1, 'Host is required'),
+        port: z.number().min(1, 'Invalid port').max(65535, 'Invalid port'),
+        username: z.string().min(1, 'Username is required'),
+        password: initial
+          ? z.string()
+          : z.string().min(1, 'Password is required'),
+      }),
+    },
+    onSubmit: async ({ value }) => {
+      setSubmitError('')
+      try {
+        await onSubmit(value)
+      } catch (err) {
+        setSubmitError(err instanceof Error ? err.message : 'Failed')
+      }
+    },
+  })
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Name
-        </label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={inputClass}
-          placeholder="My NAS"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Host
-        </label>
-        <input
-          value={host}
-          onChange={(e) => setHost(e.target.value)}
-          className={inputClass}
-          placeholder="192.168.1.100"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          SSH Port
-        </label>
-        <input
-          type="number"
-          value={port}
-          onChange={(e) => setPort(Number(e.target.value))}
-          className={inputClass}
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Username
-        </label>
-        <input
-          value={username}
-          onChange={(e) => setUsername(e.target.value)}
-          className={inputClass}
-          placeholder="admin"
-          required
-        />
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          SSH Password
-        </label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={inputClass}
-          required={!initial}
-        />
-      </div>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        form.handleSubmit()
+      }}
+      className="space-y-4"
+    >
+      <form.Field name="name">
+        {(field) => (
+          <FormWrapper label="Name" error={getFieldError(field)}>
+            <Input
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              onBlur={field.handleBlur}
+              placeholder="My NAS"
+            />
+          </FormWrapper>
+        )}
+      </form.Field>
+
+      <form.Field name="host">
+        {(field) => (
+          <FormWrapper label="Host" error={getFieldError(field)}>
+            <Input
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              onBlur={field.handleBlur}
+              placeholder="192.168.1.100"
+            />
+          </FormWrapper>
+        )}
+      </form.Field>
+
+      <form.Field name="port">
+        {(field) => (
+          <FormWrapper label="SSH Port" error={getFieldError(field)}>
+            <Input
+              type="number"
+              value={field.state.value}
+              onChange={(e) => field.handleChange(Number(e.target.value))}
+              onBlur={field.handleBlur}
+            />
+          </FormWrapper>
+        )}
+      </form.Field>
+
+      <form.Field name="username">
+        {(field) => (
+          <FormWrapper label="Username" error={getFieldError(field)}>
+            <Input
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              onBlur={field.handleBlur}
+              placeholder="admin"
+            />
+          </FormWrapper>
+        )}
+      </form.Field>
+
+      <form.Field name="password">
+        {(field) => (
+          <FormWrapper label="SSH Password" error={getFieldError(field)}>
+            <Input
+              type="password"
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              onBlur={field.handleBlur}
+            />
+          </FormWrapper>
+        )}
+      </form.Field>
+
+      {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+
       <div className="flex gap-2 justify-end pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
-        >
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
-        >
-          {loading ? 'Saving...' : 'Save'}
-        </button>
+        </Button>
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </Button>
+          )}
+        </form.Subscribe>
       </div>
     </form>
   )
@@ -188,71 +209,158 @@ function ShareFolderForm({
   onSubmit: (data: { name: string; password: string }) => Promise<void>
   onCancel: () => void
 }) {
-  const [name, setName] = useState(initial?.name ?? '')
-  const [password, setPassword] = useState(initial?.password ?? '')
-  const [loading, setLoading] = useState(false)
-  const [error, setError] = useState('')
+  const [submitError, setSubmitError] = useState('')
 
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setError('')
-    setLoading(true)
-    try {
-      await onSubmit({ name, password })
-    } catch (err) {
-      setError(err instanceof Error ? err.message : 'Failed')
-      setLoading(false)
-    }
-  }
-
-  const inputClass =
-    'w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500'
+  const form = useAppForm({
+    defaultValues: {
+      name: initial?.name ?? '',
+      password: initial?.password ?? '',
+    },
+    validators: {
+      onSubmit: z.object({
+        name: z.string().min(1, 'Name is required'),
+        password: initial
+          ? z.string()
+          : z.string().min(1, 'Password is required'),
+      }),
+    },
+    onSubmit: async ({ value }) => {
+      setSubmitError('')
+      try {
+        await onSubmit(value)
+      } catch (err) {
+        setSubmitError(err instanceof Error ? err.message : 'Failed')
+      }
+    },
+  })
 
   return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Share Folder Name
-        </label>
-        <input
-          value={name}
-          onChange={(e) => setName(e.target.value)}
-          className={inputClass}
-          placeholder="photos"
-          required
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          The encrypted shared folder name on the Synology NAS
-        </p>
-      </div>
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Encryption Password
-        </label>
-        <input
-          type="password"
-          value={password}
-          onChange={(e) => setPassword(e.target.value)}
-          className={inputClass}
-          required={!initial}
-        />
-      </div>
-      {error && <p className="text-red-600 text-sm">{error}</p>}
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        form.handleSubmit()
+      }}
+      className="space-y-4"
+    >
+      <form.Field name="name">
+        {(field) => (
+          <FormWrapper
+            label="Share Folder Name"
+            error={getFieldError(field)}
+            description="The encrypted shared folder name on the Synology NAS"
+          >
+            <Input
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              onBlur={field.handleBlur}
+              placeholder="photos"
+            />
+          </FormWrapper>
+        )}
+      </form.Field>
+
+      <form.Field name="password">
+        {(field) => (
+          <FormWrapper label="Encryption Password" error={getFieldError(field)}>
+            <Input
+              type="password"
+              value={field.state.value}
+              onChange={(e) => field.handleChange(e.target.value)}
+              onBlur={field.handleBlur}
+            />
+          </FormWrapper>
+        )}
+      </form.Field>
+
+      {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+
       <div className="flex gap-2 justify-end pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
-        >
+        <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
-        >
-          {loading ? 'Saving...' : 'Save'}
-        </button>
+        </Button>
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </Button>
+          )}
+        </form.Subscribe>
+      </div>
+    </form>
+  )
+}
+
+// --- Settings Form ---
+
+function SettingsForm({
+  initialInterval,
+  onSubmit,
+  onCancel,
+}: {
+  initialInterval: number
+  onSubmit: (interval: number) => Promise<void>
+  onCancel: () => void
+}) {
+  const [submitError, setSubmitError] = useState('')
+
+  const form = useAppForm({
+    defaultValues: {
+      interval: initialInterval,
+    },
+    validators: {
+      onSubmit: z.object({
+        interval: z.number().min(10, 'Minimum interval is 10 seconds'),
+      }),
+    },
+    onSubmit: async ({ value }) => {
+      setSubmitError('')
+      try {
+        await onSubmit(value.interval)
+      } catch (err) {
+        setSubmitError(err instanceof Error ? err.message : 'Failed')
+      }
+    },
+  })
+
+  return (
+    <form
+      onSubmit={(e) => {
+        e.preventDefault()
+        form.handleSubmit()
+      }}
+      className="space-y-4"
+    >
+      <form.Field name="interval">
+        {(field) => (
+          <FormWrapper
+            label="Polling Interval (seconds)"
+            error={getFieldError(field)}
+            description="How often to check and auto-unlock share folders (minimum 10s)"
+          >
+            <Input
+              type="number"
+              min={10}
+              value={field.state.value}
+              onChange={(e) => field.handleChange(Number(e.target.value))}
+              onBlur={field.handleBlur}
+            />
+          </FormWrapper>
+        )}
+      </form.Field>
+
+      {submitError && <p className="text-sm text-destructive">{submitError}</p>}
+
+      <div className="flex gap-2 justify-end pt-2">
+        <Button type="button" variant="outline" onClick={onCancel}>
+          Cancel
+        </Button>
+        <form.Subscribe selector={(state) => state.isSubmitting}>
+          {(isSubmitting) => (
+            <Button type="submit" disabled={isSubmitting}>
+              {isSubmitting ? 'Saving...' : 'Save'}
+            </Button>
+          )}
+        </form.Subscribe>
       </div>
     </form>
   )
@@ -266,7 +374,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
   const [pollingInterval, setPollingInterval] = useState(120)
   const [loading, setLoading] = useState(true)
 
-  // Modal states
+  // Dialog states
   const [showAddNas, setShowAddNas] = useState(false)
   const [editingNas, setEditingNas] = useState<NasDevice | null>(null)
   const [addShareFolderNasId, setAddShareFolderNasId] = useState<string | null>(
@@ -408,40 +516,50 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
 
   if (loading) {
     return (
-      <div className="min-h-screen flex items-center justify-center bg-gray-50">
-        <p className="text-gray-500">Loading...</p>
+      <div className="min-h-screen flex items-center justify-center bg-background">
+        <div className="flex flex-col items-center gap-3">
+          <div className="h-8 w-8 animate-spin rounded-full border-2 border-primary border-t-transparent" />
+          <p className="text-sm text-muted-foreground">Loading...</p>
+        </div>
       </div>
     )
   }
 
   return (
-    <div className="min-h-screen bg-gray-50">
+    <div className="min-h-screen bg-background">
       {/* Header */}
-      <header className="bg-white shadow-sm border-b">
+      <header className="border-b bg-card">
         <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <h1 className="text-xl font-bold text-gray-900">
-            Synology Shared Drives Unlocker
-          </h1>
+          <div className="flex items-center gap-3">
+            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
+              <Server className="h-4 w-4 text-primary" />
+            </div>
+            <h1 className="text-lg font-semibold">
+              Synology Shared Drives Unlocker
+            </h1>
+          </div>
           <div className="flex gap-2">
-            <button
+            <Button
+              variant="outline"
+              size="sm"
               onClick={handlePollNow}
               disabled={polling}
-              className="px-3 py-1.5 text-sm bg-green-600 text-white rounded-md hover:bg-green-700 disabled:opacity-50 cursor-pointer"
             >
+              <RefreshCw className={cn('h-4 w-4', polling && 'animate-spin')} />
               {polling ? 'Checking...' : 'Check Now'}
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="outline"
+              size="sm"
               onClick={() => setShowSettings(true)}
-              className="px-3 py-1.5 text-sm text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
             >
+              <Settings className="h-4 w-4" />
               Settings
-            </button>
-            <button
-              onClick={handleLock}
-              className="px-3 py-1.5 text-sm bg-red-600 text-white rounded-md hover:bg-red-700 cursor-pointer"
-            >
+            </Button>
+            <Button variant="destructive" size="sm" onClick={handleLock}>
+              <Lock className="h-4 w-4" />
               Lock
-            </button>
+            </Button>
           </div>
         </div>
       </header>
@@ -449,258 +567,246 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
       {/* Content */}
       <main className="max-w-5xl mx-auto px-4 py-6">
         <div className="flex items-center justify-between mb-4">
-          <h2 className="text-lg font-semibold text-gray-800">NAS Devices</h2>
-          <button
-            onClick={() => setShowAddNas(true)}
-            className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 text-sm cursor-pointer"
-          >
-            + Add NAS
-          </button>
+          <h2 className="text-lg font-semibold">NAS Devices</h2>
+          <Button size="sm" onClick={() => setShowAddNas(true)}>
+            <Plus className="h-4 w-4" />
+            Add NAS
+          </Button>
         </div>
 
         {nasList.length === 0 ? (
-          <div className="bg-white rounded-lg shadow-sm border p-8 text-center text-gray-500">
-            No NAS devices configured. Add one to get started.
-          </div>
+          <Card className="border-dashed">
+            <CardContent className="flex flex-col items-center justify-center py-12 text-center">
+              <div className="flex h-12 w-12 items-center justify-center rounded-xl bg-muted mb-4">
+                <Server className="h-6 w-6 text-muted-foreground" />
+              </div>
+              <h3 className="font-medium mb-1">No NAS devices configured</h3>
+              <p className="text-sm text-muted-foreground mb-4">
+                Add a NAS device to get started.
+              </p>
+              <Button onClick={() => setShowAddNas(true)}>
+                <Plus className="h-4 w-4" />
+                Add NAS Device
+              </Button>
+            </CardContent>
+          </Card>
         ) : (
           <div className="space-y-4">
             {nasList.map((nas) => (
-              <div
-                key={nas.id}
-                className="bg-white rounded-lg shadow-sm border"
-              >
-                <div className="p-4 border-b flex items-center justify-between">
-                  <div>
-                    <h3 className="font-semibold text-gray-900">{nas.name}</h3>
-                    <p className="text-sm text-gray-500">
-                      {nas.username}@{nas.host}:{nas.port}
-                    </p>
+              <Card key={nas.id}>
+                <CardHeader>
+                  <div className="flex items-center gap-3">
+                    <div className="flex h-8 w-8 shrink-0 items-center justify-center rounded-lg bg-muted">
+                      <Server className="h-4 w-4 text-muted-foreground" />
+                    </div>
+                    <div>
+                      <CardTitle className="text-base">{nas.name}</CardTitle>
+                      <p className="text-sm text-muted-foreground">
+                        {nas.username}@{nas.host}:{nas.port}
+                      </p>
+                    </div>
                   </div>
-                  <div className="flex gap-2">
-                    <button
-                      onClick={() => setAddShareFolderNasId(nas.id)}
-                      className="px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 cursor-pointer"
-                    >
-                      + Share Folder
-                    </button>
-                    <button
-                      onClick={() => setEditingNas(nas)}
-                      className="px-3 py-1 text-sm text-gray-600 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
-                    >
-                      Edit
-                    </button>
-                    <button
-                      onClick={() => handleDeleteNas(nas.id)}
-                      className="px-3 py-1 text-sm text-red-600 border border-red-300 rounded-md hover:bg-red-50 cursor-pointer"
-                    >
-                      Delete
-                    </button>
-                  </div>
-                </div>
+                  <CardAction>
+                    <div className="flex gap-1">
+                      <Button
+                        variant="outline"
+                        size="sm"
+                        onClick={() => setAddShareFolderNasId(nas.id)}
+                      >
+                        <FolderLock className="h-3.5 w-3.5" />
+                        Add Folder
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => setEditingNas(nas)}
+                      >
+                        <Pencil className="h-3.5 w-3.5" />
+                      </Button>
+                      <Button
+                        variant="ghost"
+                        size="icon-sm"
+                        onClick={() => handleDeleteNas(nas.id)}
+                        className="text-destructive hover:text-destructive"
+                      >
+                        <Trash2 className="h-3.5 w-3.5" />
+                      </Button>
+                    </div>
+                  </CardAction>
+                </CardHeader>
 
-                {nas.shareFolders.length === 0 ? (
-                  <div className="p-4 text-sm text-gray-500">
-                    No encrypted share folders configured.
-                  </div>
-                ) : (
-                  <div className="divide-y">
-                    {nas.shareFolders.map((shareFolder) => {
-                      const st = getShareFolderStatus(nas.id, shareFolder.id)
-                      return (
-                        <div
-                          key={shareFolder.id}
-                          className="px-4 py-3 flex items-center justify-between"
-                        >
-                          <div className="flex items-center gap-3">
-                            <StatusBadge status={st?.status ?? 'unknown'} />
-                            <span className="font-mono text-sm">
-                              {shareFolder.name}
-                            </span>
-                            {st?.error && (
-                              <span className="text-xs text-amber-600">
-                                {st.error}
-                              </span>
-                            )}
-                            {st?.lastChecked && (
-                              <span className="text-xs text-gray-400">
-                                checked{' '}
-                                {new Date(st.lastChecked).toLocaleTimeString()}
-                              </span>
-                            )}
+                {nas.shareFolders.length > 0 && <Separator />}
+
+                <CardContent
+                  className={cn(nas.shareFolders.length === 0 && 'py-0 pb-2')}
+                >
+                  {nas.shareFolders.length === 0 ? (
+                    <p className="text-sm text-muted-foreground">
+                      No encrypted share folders configured.
+                    </p>
+                  ) : (
+                    <div className="space-y-1">
+                      {nas.shareFolders.map((shareFolder, index) => {
+                        const st = getShareFolderStatus(nas.id, shareFolder.id)
+                        return (
+                          <div key={shareFolder.id}>
+                            {index > 0 && <Separator className="my-1" />}
+                            <div className="flex items-center justify-between py-2">
+                              <div className="flex items-center gap-3 min-w-0">
+                                <StatusBadge status={st?.status ?? 'unknown'} />
+                                <span className="font-mono text-sm truncate">
+                                  {shareFolder.name}
+                                </span>
+                                {st?.error && (
+                                  <span className="text-xs text-amber-600 dark:text-amber-400 truncate">
+                                    {st.error}
+                                  </span>
+                                )}
+                                {st?.lastChecked && (
+                                  <span className="text-xs text-muted-foreground whitespace-nowrap">
+                                    {new Date(
+                                      st.lastChecked
+                                    ).toLocaleTimeString()}
+                                  </span>
+                                )}
+                              </div>
+                              <div className="flex gap-1 shrink-0 ml-2">
+                                {st?.status !== 'unlocked' && (
+                                  <Button
+                                    variant="ghost"
+                                    size="xs"
+                                    onClick={() =>
+                                      handleUnlockShareFolder(
+                                        nas.id,
+                                        shareFolder.id
+                                      )
+                                    }
+                                    className="text-green-700 hover:text-green-800 dark:text-green-400"
+                                  >
+                                    <Unlock className="h-3.5 w-3.5" />
+                                    Unlock
+                                  </Button>
+                                )}
+                                <Button
+                                  variant="ghost"
+                                  size="icon-xs"
+                                  onClick={() =>
+                                    setEditingShareFolder({
+                                      nasId: nas.id,
+                                      shareFolder,
+                                    })
+                                  }
+                                >
+                                  <Pencil className="h-3 w-3" />
+                                </Button>
+                                <Button
+                                  variant="ghost"
+                                  size="icon-xs"
+                                  onClick={() =>
+                                    handleDeleteShareFolder(
+                                      nas.id,
+                                      shareFolder.id
+                                    )
+                                  }
+                                  className="text-destructive hover:text-destructive"
+                                >
+                                  <Trash2 className="h-3 w-3" />
+                                </Button>
+                              </div>
+                            </div>
                           </div>
-                          <div className="flex gap-2">
-                            {st?.status !== 'unlocked' && (
-                              <button
-                                onClick={() =>
-                                  handleUnlockShareFolder(
-                                    nas.id,
-                                    shareFolder.id
-                                  )
-                                }
-                                className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded hover:bg-green-100 cursor-pointer"
-                              >
-                                Unlock
-                              </button>
-                            )}
-                            <button
-                              onClick={() =>
-                                setEditingShareFolder({
-                                  nasId: nas.id,
-                                  shareFolder,
-                                })
-                              }
-                              className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer"
-                            >
-                              Edit
-                            </button>
-                            <button
-                              onClick={() =>
-                                handleDeleteShareFolder(nas.id, shareFolder.id)
-                              }
-                              className="px-2 py-1 text-xs text-red-600 border border-red-300 rounded hover:bg-red-50 cursor-pointer"
-                            >
-                              Delete
-                            </button>
-                          </div>
-                        </div>
-                      )
-                    })}
-                  </div>
-                )}
-              </div>
+                        )
+                      })}
+                    </div>
+                  )}
+                </CardContent>
+              </Card>
             ))}
           </div>
         )}
 
-        <p className="text-xs text-gray-400 mt-6 text-center">
+        <p className="text-xs text-muted-foreground mt-6 text-center">
           Polling every {pollingInterval}s. Share folders are checked and
           automatically unlocked in the background.
         </p>
       </main>
 
-      {/* Modals */}
-      <Modal
-        open={showAddNas}
-        onClose={() => setShowAddNas(false)}
-        title="Add NAS Device"
-      >
-        <NasForm
-          onSubmit={handleAddNas}
-          onCancel={() => setShowAddNas(false)}
-        />
-      </Modal>
-
-      <Modal
-        open={!!editingNas}
-        onClose={() => setEditingNas(null)}
-        title="Edit NAS Device"
-      >
-        {editingNas && (
+      {/* Dialogs */}
+      <Dialog open={showAddNas} onOpenChange={setShowAddNas}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add NAS Device</DialogTitle>
+          </DialogHeader>
           <NasForm
-            initial={editingNas}
-            onSubmit={handleUpdateNas}
-            onCancel={() => setEditingNas(null)}
+            onSubmit={handleAddNas}
+            onCancel={() => setShowAddNas(false)}
           />
-        )}
-      </Modal>
+        </DialogContent>
+      </Dialog>
 
-      <Modal
+      <Dialog
+        open={!!editingNas}
+        onOpenChange={(open) => !open && setEditingNas(null)}
+      >
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit NAS Device</DialogTitle>
+          </DialogHeader>
+          {editingNas && (
+            <NasForm
+              initial={editingNas}
+              onSubmit={handleUpdateNas}
+              onCancel={() => setEditingNas(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog
         open={!!addShareFolderNasId}
-        onClose={() => setAddShareFolderNasId(null)}
-        title="Add Encrypted Share Folder"
+        onOpenChange={(open) => !open && setAddShareFolderNasId(null)}
       >
-        <ShareFolderForm
-          onSubmit={handleAddShareFolder}
-          onCancel={() => setAddShareFolderNasId(null)}
-        />
-      </Modal>
-
-      <Modal
-        open={!!editingShareFolder}
-        onClose={() => setEditingShareFolder(null)}
-        title="Edit Share Folder"
-      >
-        {editingShareFolder && (
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Add Encrypted Share Folder</DialogTitle>
+          </DialogHeader>
           <ShareFolderForm
-            initial={editingShareFolder.shareFolder}
-            onSubmit={handleUpdateShareFolder}
-            onCancel={() => setEditingShareFolder(null)}
+            onSubmit={handleAddShareFolder}
+            onCancel={() => setAddShareFolderNasId(null)}
           />
-        )}
-      </Modal>
+        </DialogContent>
+      </Dialog>
 
-      <Modal
-        open={showSettings}
-        onClose={() => setShowSettings(false)}
-        title="Settings"
+      <Dialog
+        open={!!editingShareFolder}
+        onOpenChange={(open) => !open && setEditingShareFolder(null)}
       >
-        <SettingsForm
-          initialInterval={pollingInterval}
-          onSubmit={handleSaveSettings}
-          onCancel={() => setShowSettings(false)}
-        />
-      </Modal>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Edit Share Folder</DialogTitle>
+          </DialogHeader>
+          {editingShareFolder && (
+            <ShareFolderForm
+              initial={editingShareFolder.shareFolder}
+              onSubmit={handleUpdateShareFolder}
+              onCancel={() => setEditingShareFolder(null)}
+            />
+          )}
+        </DialogContent>
+      </Dialog>
+
+      <Dialog open={showSettings} onOpenChange={setShowSettings}>
+        <DialogContent>
+          <DialogHeader>
+            <DialogTitle>Settings</DialogTitle>
+          </DialogHeader>
+          <SettingsForm
+            initialInterval={pollingInterval}
+            onSubmit={handleSaveSettings}
+            onCancel={() => setShowSettings(false)}
+          />
+        </DialogContent>
+      </Dialog>
     </div>
-  )
-}
-
-// --- Settings Form ---
-
-function SettingsForm({
-  initialInterval,
-  onSubmit,
-  onCancel,
-}: {
-  initialInterval: number
-  onSubmit: (interval: number) => Promise<void>
-  onCancel: () => void
-}) {
-  const [interval, setInterval] = useState(initialInterval)
-  const [loading, setLoading] = useState(false)
-
-  const handleSubmit = async (e: React.FormEvent) => {
-    e.preventDefault()
-    setLoading(true)
-    try {
-      await onSubmit(interval)
-    } finally {
-      setLoading(false)
-    }
-  }
-
-  return (
-    <form onSubmit={handleSubmit} className="space-y-3">
-      <div>
-        <label className="block text-sm font-medium text-gray-700 mb-1">
-          Polling Interval (seconds)
-        </label>
-        <input
-          type="number"
-          min={10}
-          value={interval}
-          onChange={(e) => setInterval(Number(e.target.value))}
-          className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
-        />
-        <p className="text-xs text-gray-500 mt-1">
-          How often to check and auto-unlock share folders (minimum 10s)
-        </p>
-      </div>
-      <div className="flex gap-2 justify-end pt-2">
-        <button
-          type="button"
-          onClick={onCancel}
-          className="px-4 py-2 text-gray-700 border border-gray-300 rounded-md hover:bg-gray-50 cursor-pointer"
-        >
-          Cancel
-        </button>
-        <button
-          type="submit"
-          disabled={loading}
-          className="px-4 py-2 bg-blue-600 text-white rounded-md hover:bg-blue-700 disabled:opacity-50 cursor-pointer"
-        >
-          {loading ? 'Saving...' : 'Save'}
-        </button>
-      </div>
-    </form>
   )
 }
