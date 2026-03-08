@@ -1,7 +1,7 @@
 import type {
   NasDevice,
-  EncryptedShare,
-  ShareStatus,
+  EncryptedShareFolder,
+  ShareFolderStatus,
   AppStatus,
 } from '@synology-unlocker/config';
 
@@ -42,7 +42,7 @@ export const api = {
 
   getNasList: () => request<NasDevice[]>('/nas'),
 
-  addNas: (data: Omit<NasDevice, 'id' | 'shares'>) =>
+  addNas: (data: Omit<NasDevice, 'id' | 'shareFolders'>) =>
     request<NasDevice>('/nas', {
       method: 'POST',
       body: JSON.stringify(data),
@@ -57,37 +57,37 @@ export const api = {
   deleteNas: (id: string) =>
     request<{ success: boolean }>(`/nas/${id}`, { method: 'DELETE' }),
 
-  addShare: (nasId: string, data: Omit<EncryptedShare, 'id'>) =>
-    request<EncryptedShare>(`/nas/${nasId}/shares`, {
+  addShareFolder: (nasId: string, data: Omit<EncryptedShareFolder, 'id'>) =>
+    request<EncryptedShareFolder>(`/nas/${nasId}/share-folders`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  updateShare: (
+  updateShareFolder: (
     nasId: string,
-    shareId: string,
-    data: Partial<EncryptedShare>,
+    shareFolderId: string,
+    data: Partial<EncryptedShareFolder>,
   ) =>
-    request<EncryptedShare>(`/nas/${nasId}/shares/${shareId}`, {
+    request<EncryptedShareFolder>(`/nas/${nasId}/share-folders/${shareFolderId}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
 
-  deleteShare: (nasId: string, shareId: string) =>
-    request<{ success: boolean }>(`/nas/${nasId}/shares/${shareId}`, {
+  deleteShareFolder: (nasId: string, shareFolderId: string) =>
+    request<{ success: boolean }>(`/nas/${nasId}/share-folders/${shareFolderId}`, {
       method: 'DELETE',
     }),
 
-  unlockShare: (nasId: string, shareId: string) =>
+  unlockShareFolder: (nasId: string, shareFolderId: string) =>
     request<{ success: boolean; message: string }>(
-      `/nas/${nasId}/shares/${shareId}/unlock`,
+      `/nas/${nasId}/share-folders/${shareFolderId}/unlock`,
       { method: 'POST' },
     ),
 
-  getShareStatuses: () => request<ShareStatus[]>('/shares/status'),
+  getShareFolderStatuses: () => request<ShareFolderStatus[]>('/share-folders/status'),
 
   pollNow: () =>
-    request<{ success: boolean; statuses: ShareStatus[] }>('/shares/poll', {
+    request<{ success: boolean; statuses: ShareFolderStatus[] }>('/share-folders/poll', {
       method: 'POST',
     }),
 

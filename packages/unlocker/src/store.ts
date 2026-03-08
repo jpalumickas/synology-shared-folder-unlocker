@@ -1,11 +1,11 @@
 import { randomBytes } from 'node:crypto';
-import type { AppConfig, EncryptedShare, ShareStatus } from '@synology-unlocker/config';
+import type { AppConfig, EncryptedShareFolder, ShareFolderStatus } from '@synology-unlocker/config';
 
 class Store {
   private config: AppConfig | null = null;
   private sessionToken: string | null = null;
   private masterPassword: string | null = null;
-  private shareStatuses: Map<string, ShareStatus> = new Map();
+  private shareFolderStatuses: Map<string, ShareFolderStatus> = new Map();
 
   get isUnlocked(): boolean {
     return this.config !== null;
@@ -22,13 +22,13 @@ class Store {
     this.sessionToken = randomBytes(32).toString('hex');
 
     for (const nas of config.nasList) {
-      for (const share of nas.shares) {
-        const key = `${nas.id}:${share.id}`;
-        if (!this.shareStatuses.has(key)) {
-          this.shareStatuses.set(key, {
+      for (const shareFolder of nas.shareFolders) {
+        const key = `${nas.id}:${shareFolder.id}`;
+        if (!this.shareFolderStatuses.has(key)) {
+          this.shareFolderStatuses.set(key, {
             nasId: nas.id,
-            shareId: share.id,
-            shareName: share.name,
+            shareFolderId: shareFolder.id,
+            shareFolderName: shareFolder.name,
             status: 'unknown',
             lastChecked: null,
           });
@@ -47,7 +47,7 @@ class Store {
     this.config = null;
     this.sessionToken = null;
     this.masterPassword = null;
-    this.shareStatuses.clear();
+    this.shareFolderStatuses.clear();
   }
 
   getConfig(): AppConfig | null {
@@ -62,18 +62,18 @@ class Store {
     this.config = config;
   }
 
-  getShareStatuses(): ShareStatus[] {
-    return Array.from(this.shareStatuses.values());
+  getShareFolderStatuses(): ShareFolderStatus[] {
+    return Array.from(this.shareFolderStatuses.values());
   }
 
-  updateShareStatus(
+  updateShareFolderStatus(
     nasId: string,
-    shareId: string,
-    status: ShareStatus['status'],
+    shareFolderId: string,
+    status: ShareFolderStatus['status'],
     error?: string,
   ): void {
-    const key = `${nasId}:${shareId}`;
-    const existing = this.shareStatuses.get(key);
+    const key = `${nasId}:${shareFolderId}`;
+    const existing = this.shareFolderStatuses.get(key);
     if (existing) {
       existing.status = status;
       existing.lastChecked = new Date().toISOString();
@@ -81,29 +81,29 @@ class Store {
     }
   }
 
-  setShareStatus(
+  setShareFolderStatus(
     nasId: string,
-    share: EncryptedShare,
-    status: ShareStatus['status'],
+    shareFolder: EncryptedShareFolder,
+    status: ShareFolderStatus['status'],
   ): void {
-    const key = `${nasId}:${share.id}`;
-    this.shareStatuses.set(key, {
+    const key = `${nasId}:${shareFolder.id}`;
+    this.shareFolderStatuses.set(key, {
       nasId,
-      shareId: share.id,
-      shareName: share.name,
+      shareFolderId: shareFolder.id,
+      shareFolderName: shareFolder.name,
       status,
       lastChecked: null,
     });
   }
 
-  removeShareStatus(nasId: string, shareId: string): void {
-    this.shareStatuses.delete(`${nasId}:${shareId}`);
+  removeShareFolderStatus(nasId: string, shareFolderId: string): void {
+    this.shareFolderStatuses.delete(`${nasId}:${shareFolderId}`);
   }
 
   removeNasStatuses(nasId: string): void {
-    for (const key of this.shareStatuses.keys()) {
+    for (const key of this.shareFolderStatuses.keys()) {
       if (key.startsWith(`${nasId}:`)) {
-        this.shareStatuses.delete(key);
+        this.shareFolderStatuses.delete(key);
       }
     }
   }

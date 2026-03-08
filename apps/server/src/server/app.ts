@@ -9,14 +9,14 @@ import {
   startPoller,
   restartPoller,
   pollOnce,
-  unlockShare,
+  unlockShareFolder,
 } from '@synology-unlocker/unlocker';
 import {
   saveConfig,
   loadConfig,
   configExists,
 } from '@synology-unlocker/config';
-import type { AppConfig, NasDevice, EncryptedShare } from '@synology-unlocker/config';
+import type { AppConfig, NasDevice, EncryptedShareFolder } from '@synology-unlocker/config';
 
 const app = new Hono();
 const api = new Hono();
@@ -109,13 +109,13 @@ api.post('/lock', (c) => {
 
 // --- Routes requiring app unlocked (no session needed) ---
 
-api.get('/shares/status', requireUnlocked, (c) => {
-  return c.json(store.getShareStatuses());
+api.get('/share-folders/status', requireUnlocked, (c) => {
+  return c.json(store.getShareFolderStatuses());
 });
 
-api.post('/shares/poll', requireUnlocked, async (c) => {
+api.post('/share-folders/poll', requireUnlocked, async (c) => {
   await pollOnce();
-  return c.json({ success: true, statuses: store.getShareStatuses() });
+  return c.json({ success: true, statuses: store.getShareFolderStatuses() });
 });
 
 // --- Routes requiring valid session ---
@@ -126,7 +126,7 @@ api.get('/nas', requireSession, (c) => {
 });
 
 api.post('/nas', requireSession, async (c) => {
-  const body = await c.req.json<Omit<NasDevice, 'id' | 'shares'>>();
+  const body = await c.req.json<Omit<NasDevice, 'id' | 'shareFolders'>>();
   const config = store.getConfig()!;
   const password = store.getMasterPassword()!;
 
@@ -137,7 +137,7 @@ api.post('/nas', requireSession, async (c) => {
     port: body.port || 22,
     username: body.username,
     password: body.password,
-    shares: [],
+    shareFolders: [],
   };
 
   config.nasList.push(nas);
@@ -182,61 +182,61 @@ api.delete('/nas/:id', requireSession, async (c) => {
   return c.json({ success: true });
 });
 
-api.post('/nas/:nasId/shares', requireSession, async (c) => {
+api.post('/nas/:nasId/share-folders', requireSession, async (c) => {
   const { nasId } = c.req.param();
-  const body = await c.req.json<Omit<EncryptedShare, 'id'>>();
+  const body = await c.req.json<Omit<EncryptedShareFolder, 'id'>>();
   const config = store.getConfig()!;
   const password = store.getMasterPassword()!;
 
   const nas = config.nasList.find((n) => n.id === nasId);
   if (!nas) return c.json({ error: 'NAS not found' }, 404);
 
-  const share: EncryptedShare = {
+  const shareFolder: EncryptedShareFolder = {
     id: randomUUID(),
     name: body.name,
     password: body.password,
   };
 
-  nas.shares.push(share);
-  store.setShareStatus(nasId, share, 'unknown');
+  nas.shareFolders.push(shareFolder);
+  store.setShareFolderStatus(nasId, shareFolder, 'unknown');
   store.updateConfig(config);
   await saveConfig(config, password);
   restartPoller();
 
-  return c.json(share, 201);
+  return c.json(shareFolder, 201);
 });
 
-api.put('/nas/:nasId/shares/:shareId', requireSession, async (c) => {
-  const { nasId, shareId } = c.req.param();
-  const body = await c.req.json<Partial<EncryptedShare>>();
+api.put('/nas/:nasId/share-folders/:shareFolderId', requireSession, async (c) => {
+  const { nasId, shareFolderId } = c.req.param();
+  const body = await c.req.json<Partial<EncryptedShareFolder>>();
   const config = store.getConfig()!;
   const password = store.getMasterPassword()!;
 
   const nas = config.nasList.find((n) => n.id === nasId);
   if (!nas) return c.json({ error: 'NAS not found' }, 404);
 
-  const share = nas.shares.find((s) => s.id === shareId);
-  if (!share) return c.json({ error: 'Share not found' }, 404);
+  const shareFolder = nas.shareFolders.find((s) => s.id === shareFolderId);
+  if (!shareFolder) return c.json({ error: 'Share folder not found' }, 404);
 
-  if (body.name !== undefined) share.name = body.name;
-  if (body.password !== undefined) share.password = body.password;
+  if (body.name !== undefined) shareFolder.name = body.name;
+  if (body.password !== undefined) shareFolder.password = body.password;
 
   store.updateConfig(config);
   await saveConfig(config, password);
 
-  return c.json(share);
+  return c.json(shareFolder);
 });
 
-api.delete('/nas/:nasId/shares/:shareId', requireSession, async (c) => {
-  const { nasId, shareId } = c.req.param();
+api.delete('/nas/:nasId/share-folders/:shareFolderId', requireSession, async (c) => {
+  const { nasId, shareFolderId } = c.req.param();
   const config = store.getConfig()!;
   const password = store.getMasterPassword()!;
 
   const nas = config.nasList.find((n) => n.id === nasId);
   if (!nas) return c.json({ error: 'NAS not found' }, 404);
 
-  nas.shares = nas.shares.filter((s) => s.id !== shareId);
-  store.removeShareStatus(nasId, shareId);
+  nas.shareFolders = nas.shareFolders.filter((s) => s.id !== shareFolderId);
+  store.removeShareFolderStatus(nasId, shareFolderId);
   store.updateConfig(config);
   await saveConfig(config, password);
 
@@ -244,22 +244,22 @@ api.delete('/nas/:nasId/shares/:shareId', requireSession, async (c) => {
 });
 
 api.post(
-  '/nas/:nasId/shares/:shareId/unlock',
+  '/nas/:nasId/share-folders/:shareFolderId/unlock',
   requireSession,
   async (c) => {
-    const { nasId, shareId } = c.req.param();
+    const { nasId, shareFolderId } = c.req.param();
     const config = store.getConfig()!;
 
     const nas = config.nasList.find((n) => n.id === nasId);
     if (!nas) return c.json({ error: 'NAS not found' }, 404);
 
-    const share = nas.shares.find((s) => s.id === shareId);
-    if (!share) return c.json({ error: 'Share not found' }, 404);
+    const shareFolder = nas.shareFolders.find((s) => s.id === shareFolderId);
+    if (!shareFolder) return c.json({ error: 'Share folder not found' }, 404);
 
-    const result = await unlockShare(nas, share);
-    store.updateShareStatus(
+    const result = await unlockShareFolder(nas, shareFolder);
+    store.updateShareFolderStatus(
       nasId,
-      shareId,
+      shareFolderId,
       result.success ? 'unlocked' : 'error',
       result.success ? undefined : result.message,
     );

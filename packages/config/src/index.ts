@@ -7,8 +7,8 @@ export {
 
 export type {
   NasDevice,
-  EncryptedShare,
+  EncryptedShareFolder,
   AppConfig,
-  ShareStatus,
+  ShareFolderStatus,
   AppStatus,
 } from './types.js';

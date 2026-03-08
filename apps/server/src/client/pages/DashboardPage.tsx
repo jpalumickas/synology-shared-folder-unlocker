@@ -1,6 +1,6 @@
 import { useState, useEffect, useCallback } from 'react';
 import { api } from '../lib/api';
-import type { NasDevice, ShareStatus } from '@synology-unlocker/config';
+import type { NasDevice, ShareFolderStatus } from '@synology-unlocker/config';
 
 // --- Modal ---
 
@@ -42,7 +42,7 @@ function Modal({
 
 // --- Status Badge ---
 
-function StatusBadge({ status }: { status: ShareStatus['status'] }) {
+function StatusBadge({ status }: { status: ShareFolderStatus['status'] }) {
   const colors = {
     unknown: 'bg-gray-400',
     locked: 'bg-red-500',
@@ -66,7 +66,7 @@ function NasForm({
   onCancel,
 }: {
   initial?: NasDevice;
-  onSubmit: (data: Omit<NasDevice, 'id' | 'shares'>) => Promise<void>;
+  onSubmit: (data: Omit<NasDevice, 'id' | 'shareFolders'>) => Promise<void>;
   onCancel: () => void;
 }) {
   const [name, setName] = useState(initial?.name ?? '');
@@ -174,9 +174,9 @@ function NasForm({
   );
 }
 
-// --- Share Form ---
+// --- Share Folder Form ---
 
-function ShareForm({
+function ShareFolderForm({
   initial,
   onSubmit,
   onCancel,
@@ -209,7 +209,7 @@ function ShareForm({
     <form onSubmit={handleSubmit} className="space-y-3">
       <div>
         <label className="block text-sm font-medium text-gray-700 mb-1">
-          Share Name
+          Share Folder Name
         </label>
         <input
           value={name}
@@ -259,17 +259,17 @@ function ShareForm({
 
 export function DashboardPage({ onLock }: { onLock: () => void }) {
   const [nasList, setNasList] = useState<NasDevice[]>([]);
-  const [statuses, setStatuses] = useState<ShareStatus[]>([]);
+  const [statuses, setStatuses] = useState<ShareFolderStatus[]>([]);
   const [pollingInterval, setPollingInterval] = useState(120);
   const [loading, setLoading] = useState(true);
 
   // Modal states
   const [showAddNas, setShowAddNas] = useState(false);
   const [editingNas, setEditingNas] = useState<NasDevice | null>(null);
-  const [addShareNasId, setAddShareNasId] = useState<string | null>(null);
-  const [editingShare, setEditingShare] = useState<{
+  const [addShareFolderNasId, setAddShareFolderNasId] = useState<string | null>(null);
+  const [editingShareFolder, setEditingShareFolder] = useState<{
     nasId: string;
-    share: { id: string; name: string; password: string };
+    shareFolder: { id: string; name: string; password: string };
   } | null>(null);
   const [showSettings, setShowSettings] = useState(false);
   const [polling, setPolling] = useState(false);
@@ -278,7 +278,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
     try {
       const [nas, sts, settings] = await Promise.all([
         api.getNasList(),
-        api.getShareStatuses(),
+        api.getShareFolderStatuses(),
         api.getSettings(),
       ]);
       setNasList(nas);
@@ -299,7 +299,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
   useEffect(() => {
     const interval = setInterval(async () => {
       try {
-        const sts = await api.getShareStatuses();
+        const sts = await api.getShareFolderStatuses();
         setStatuses(sts);
       } catch {
         /* ignore */
@@ -308,8 +308,8 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
     return () => clearInterval(interval);
   }, []);
 
-  const getShareStatus = (nasId: string, shareId: string) =>
-    statuses.find((s) => s.nasId === nasId && s.shareId === shareId);
+  const getShareFolderStatus = (nasId: string, shareFolderId: string) =>
+    statuses.find((s) => s.nasId === nasId && s.shareFolderId === shareFolderId);
 
   const handleLock = async () => {
     await api.lock();
@@ -329,14 +329,14 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
   };
 
   const handleAddNas = async (
-    data: Omit<NasDevice, 'id' | 'shares'>,
+    data: Omit<NasDevice, 'id' | 'shareFolders'>,
   ) => {
     await api.addNas(data);
     setShowAddNas(false);
     fetchData();
   };
 
-  const handleUpdateNas = async (data: Omit<NasDevice, 'id' | 'shares'>) => {
+  const handleUpdateNas = async (data: Omit<NasDevice, 'id' | 'shareFolders'>) => {
     if (!editingNas) return;
     await api.updateNas(editingNas.id, data);
     setEditingNas(null);
@@ -344,38 +344,38 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
   };
 
   const handleDeleteNas = async (id: string) => {
-    if (!confirm('Delete this NAS device and all its shares?')) return;
+    if (!confirm('Delete this NAS device and all its share folders?')) return;
     await api.deleteNas(id);
     fetchData();
   };
 
-  const handleAddShare = async (data: { name: string; password: string }) => {
-    if (!addShareNasId) return;
-    await api.addShare(addShareNasId, data);
-    setAddShareNasId(null);
+  const handleAddShareFolder = async (data: { name: string; password: string }) => {
+    if (!addShareFolderNasId) return;
+    await api.addShareFolder(addShareFolderNasId, data);
+    setAddShareFolderNasId(null);
     fetchData();
   };
 
-  const handleUpdateShare = async (data: {
+  const handleUpdateShareFolder = async (data: {
     name: string;
     password: string;
   }) => {
-    if (!editingShare) return;
-    await api.updateShare(editingShare.nasId, editingShare.share.id, data);
-    setEditingShare(null);
+    if (!editingShareFolder) return;
+    await api.updateShareFolder(editingShareFolder.nasId, editingShareFolder.shareFolder.id, data);
+    setEditingShareFolder(null);
     fetchData();
   };
 
-  const handleDeleteShare = async (nasId: string, shareId: string) => {
-    if (!confirm('Delete this share?')) return;
-    await api.deleteShare(nasId, shareId);
+  const handleDeleteShareFolder = async (nasId: string, shareFolderId: string) => {
+    if (!confirm('Delete this share folder?')) return;
+    await api.deleteShareFolder(nasId, shareFolderId);
     fetchData();
   };
 
-  const handleUnlockShare = async (nasId: string, shareId: string) => {
+  const handleUnlockShareFolder = async (nasId: string, shareFolderId: string) => {
     try {
-      await api.unlockShare(nasId, shareId);
-      const sts = await api.getShareStatuses();
+      await api.unlockShareFolder(nasId, shareFolderId);
+      const sts = await api.getShareFolderStatuses();
       setStatuses(sts);
     } catch {
       /* ignore */
@@ -460,10 +460,10 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
                   </div>
                   <div className="flex gap-2">
                     <button
-                      onClick={() => setAddShareNasId(nas.id)}
+                      onClick={() => setAddShareFolderNasId(nas.id)}
                       className="px-3 py-1 text-sm bg-blue-50 text-blue-700 rounded-md hover:bg-blue-100 cursor-pointer"
                     >
-                      + Share
+                      + Share Folder
                     </button>
                     <button
                       onClick={() => setEditingNas(nas)}
@@ -480,23 +480,23 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
                   </div>
                 </div>
 
-                {nas.shares.length === 0 ? (
+                {nas.shareFolders.length === 0 ? (
                   <div className="p-4 text-sm text-gray-500">
-                    No encrypted shares configured.
+                    No encrypted share folders configured.
                   </div>
                 ) : (
                   <div className="divide-y">
-                    {nas.shares.map((share) => {
-                      const st = getShareStatus(nas.id, share.id);
+                    {nas.shareFolders.map((shareFolder) => {
+                      const st = getShareFolderStatus(nas.id, shareFolder.id);
                       return (
                         <div
-                          key={share.id}
+                          key={shareFolder.id}
                           className="px-4 py-3 flex items-center justify-between"
                         >
                           <div className="flex items-center gap-3">
                             <StatusBadge status={st?.status ?? 'unknown'} />
                             <span className="font-mono text-sm">
-                              {share.name}
+                              {shareFolder.name}
                             </span>
                             {st?.error && (
                               <span className="text-xs text-amber-600">
@@ -514,7 +514,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
                             {st?.status !== 'unlocked' && (
                               <button
                                 onClick={() =>
-                                  handleUnlockShare(nas.id, share.id)
+                                  handleUnlockShareFolder(nas.id, shareFolder.id)
                                 }
                                 className="px-2 py-1 text-xs bg-green-50 text-green-700 rounded hover:bg-green-100 cursor-pointer"
                               >
@@ -523,7 +523,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
                             )}
                             <button
                               onClick={() =>
-                                setEditingShare({ nasId: nas.id, share })
+                                setEditingShareFolder({ nasId: nas.id, shareFolder })
                               }
                               className="px-2 py-1 text-xs text-gray-600 border border-gray-300 rounded hover:bg-gray-50 cursor-pointer"
                             >
@@ -531,7 +531,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
                             </button>
                             <button
                               onClick={() =>
-                                handleDeleteShare(nas.id, share.id)
+                                handleDeleteShareFolder(nas.id, shareFolder.id)
                               }
                               className="px-2 py-1 text-xs text-red-600 border border-red-300 rounded hover:bg-red-50 cursor-pointer"
                             >
@@ -549,7 +549,7 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
         )}
 
         <p className="text-xs text-gray-400 mt-6 text-center">
-          Polling every {pollingInterval}s. Shares are checked and automatically
+          Polling every {pollingInterval}s. Share folders are checked and automatically
           unlocked in the background.
         </p>
       </main>
@@ -581,26 +581,26 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
       </Modal>
 
       <Modal
-        open={!!addShareNasId}
-        onClose={() => setAddShareNasId(null)}
-        title="Add Encrypted Share"
+        open={!!addShareFolderNasId}
+        onClose={() => setAddShareFolderNasId(null)}
+        title="Add Encrypted Share Folder"
       >
-        <ShareForm
-          onSubmit={handleAddShare}
-          onCancel={() => setAddShareNasId(null)}
+        <ShareFolderForm
+          onSubmit={handleAddShareFolder}
+          onCancel={() => setAddShareFolderNasId(null)}
         />
       </Modal>
 
       <Modal
-        open={!!editingShare}
-        onClose={() => setEditingShare(null)}
-        title="Edit Share"
+        open={!!editingShareFolder}
+        onClose={() => setEditingShareFolder(null)}
+        title="Edit Share Folder"
       >
-        {editingShare && (
-          <ShareForm
-            initial={editingShare.share}
-            onSubmit={handleUpdateShare}
-            onCancel={() => setEditingShare(null)}
+        {editingShareFolder && (
+          <ShareFolderForm
+            initial={editingShareFolder.shareFolder}
+            onSubmit={handleUpdateShareFolder}
+            onCancel={() => setEditingShareFolder(null)}
           />
         )}
       </Modal>
@@ -658,7 +658,7 @@ function SettingsForm({
           className="w-full px-3 py-2 border border-gray-300 rounded-md focus:outline-none focus:ring-2 focus:ring-blue-500"
         />
         <p className="text-xs text-gray-500 mt-1">
-          How often to check and auto-unlock shares (minimum 10s)
+          How often to check and auto-unlock share folders (minimum 10s)
         </p>
       </div>
       <div className="flex gap-2 justify-end pt-2">

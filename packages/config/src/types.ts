@@ -5,10 +5,10 @@ export interface NasDevice {
   port: number;
   username: string;
   password: string;
-  shares: EncryptedShare[];
+  shareFolders: EncryptedShareFolder[];
 }
 
-export interface EncryptedShare {
+export interface EncryptedShareFolder {
   id: string;
   name: string;
   password: string;
@@ -19,10 +19,10 @@ export interface AppConfig {
   nasList: NasDevice[];
 }
 
-export interface ShareStatus {
+export interface ShareFolderStatus {
   nasId: string;
-  shareId: string;
-  shareName: string;
+  shareFolderId: string;
+  shareFolderName: string;
   status: 'unknown' | 'locked' | 'unlocked' | 'error';
   lastChecked: string | null;
   error?: string;

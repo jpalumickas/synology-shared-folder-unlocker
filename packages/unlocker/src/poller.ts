@@ -1,5 +1,5 @@
 import { store } from './store.js';
-import { checkShareStatus, unlockShare } from './ssh.js';
+import { checkShareFolderStatus, unlockShareFolder } from './ssh.js';
 
 let pollInterval: ReturnType<typeof setInterval> | null = null;
 
@@ -8,26 +8,26 @@ export async function pollOnce(): Promise<void> {
   if (!config) return;
 
   for (const nas of config.nasList) {
-    for (const share of nas.shares) {
+    for (const shareFolder of nas.shareFolders) {
       try {
-        const status = await checkShareStatus(nas, share);
-        store.updateShareStatus(nas.id, share.id, status);
+        const status = await checkShareFolderStatus(nas, shareFolder);
+        store.updateShareFolderStatus(nas.id, shareFolder.id, status);
 
         if (status === 'locked') {
           console.log(
-            `[Poller] Share "${share.name}" on ${nas.name} is locked, attempting unlock...`,
+            `[Poller] Share folder "${shareFolder.name}" on ${nas.name} is locked, attempting unlock...`,
           );
-          const result = await unlockShare(nas, share);
+          const result = await unlockShareFolder(nas, shareFolder);
           if (result.success) {
             console.log(`[Poller] ${result.message}`);
-            store.updateShareStatus(nas.id, share.id, 'unlocked');
+            store.updateShareFolderStatus(nas.id, shareFolder.id, 'unlocked');
           } else {
             console.error(
-              `[Poller] Failed to unlock "${share.name}": ${result.message}`,
+              `[Poller] Failed to unlock "${shareFolder.name}": ${result.message}`,
             );
-            store.updateShareStatus(
+            store.updateShareFolderStatus(
               nas.id,
-              share.id,
+              shareFolder.id,
               'error',
               result.message,
             );
@@ -36,9 +36,9 @@ export async function pollOnce(): Promise<void> {
       } catch (err) {
         const msg = err instanceof Error ? err.message : 'Unknown error';
         console.error(
-          `[Poller] Error checking "${share.name}" on ${nas.name}: ${msg}`,
+          `[Poller] Error checking "${shareFolder.name}" on ${nas.name}: ${msg}`,
         );
-        store.updateShareStatus(nas.id, share.id, 'error', msg);
+        store.updateShareFolderStatus(nas.id, shareFolder.id, 'error', msg);
       }
     }
   }

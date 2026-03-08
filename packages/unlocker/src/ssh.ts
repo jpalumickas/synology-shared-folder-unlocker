@@ -1,5 +1,5 @@
 import { Client } from 'ssh2';
-import type { NasDevice, EncryptedShare } from '@synology-unlocker/config';
+import type { NasDevice, EncryptedShareFolder } from '@synology-unlocker/config';
 
 interface CommandResult {
   stdout: string;
@@ -73,14 +73,14 @@ function sudoCommand(nas: NasDevice, command: string): Promise<CommandResult> {
   return executeCommand(nas, `sudo -S ${command} 2>&1`, nas.password);
 }
 
-export async function checkShareStatus(
+export async function checkShareFolderStatus(
   nas: NasDevice,
-  share: EncryptedShare,
+  shareFolder: EncryptedShareFolder,
 ): Promise<'locked' | 'unlocked' | 'error'> {
   try {
     const result = await sudoCommand(
       nas,
-      `/usr/syno/sbin/synoshare --enc_get_info ${shellEscape(share.name)}`,
+      `/usr/syno/sbin/synoshare --enc_get_info ${shellEscape(shareFolder.name)}`,
     );
     const output = result.stdout + result.stderr;
 
@@ -100,10 +100,10 @@ export async function checkShareStatus(
       return 'locked';
     }
 
-    // Fallback: check if share directory has contents
+    // Fallback: check if share folder directory has contents
     const lsResult = await executeCommand(
       nas,
-      `ls -A /volume1/${shellEscape(share.name)}/ 2>/dev/null | head -1`,
+      `ls -A /volume1/${shellEscape(shareFolder.name)}/ 2>/dev/null | head -1`,
     );
     return lsResult.stdout.trim() ? 'unlocked' : 'locked';
   } catch {
@@ -111,14 +111,14 @@ export async function checkShareStatus(
   }
 }
 
-export async function unlockShare(
+export async function unlockShareFolder(
   nas: NasDevice,
-  share: EncryptedShare,
+  shareFolder: EncryptedShareFolder,
 ): Promise<{ success: boolean; message: string }> {
   try {
     const result = await sudoCommand(
       nas,
-      `/usr/syno/sbin/synoshare --enc_mount ${shellEscape(share.name)} ${shellEscape(share.password)}`,
+      `/usr/syno/sbin/synoshare --enc_mount ${shellEscape(shareFolder.name)} ${shellEscape(shareFolder.password)}`,
     );
 
     const output = result.stdout + result.stderr;
@@ -126,7 +126,7 @@ export async function unlockShare(
     if (result.code === 0) {
       return {
         success: true,
-        message: `Share "${share.name}" unlocked successfully`,
+        message: `Share folder "${shareFolder.name}" unlocked successfully`,
       };
     }
 
