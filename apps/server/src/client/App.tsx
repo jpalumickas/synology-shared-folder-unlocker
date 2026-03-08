@@ -35,6 +35,6 @@ export function App() {
     case 'unlock':
       return <UnlockPage onComplete={() => setView('dashboard')} />
     case 'dashboard':
-      return <DashboardPage onLock={() => setView('unlock')} />
+      return <DashboardPage onLogout={() => setView('unlock')} />
   }
 }

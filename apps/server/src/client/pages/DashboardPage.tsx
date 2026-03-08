@@ -18,7 +18,7 @@ import {
 } from '@synology-shared-folder-unlocker/theme'
 import {
   FolderLock,
-  Lock,
+  LogOut,
   Pencil,
   Plus,
   RefreshCw,
@@ -368,7 +368,7 @@ function SettingsForm({
 
 // --- Dashboard Page ---
 
-export function DashboardPage({ onLock }: { onLock: () => void }) {
+export function DashboardPage({ onLogout }: { onLogout: () => void }) {
   const [nasList, setNasList] = useState<NasDevice[]>([])
   const [statuses, setStatuses] = useState<ShareFolderStatus[]>([])
   const [pollingInterval, setPollingInterval] = useState(120)
@@ -424,9 +424,9 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
   const getShareFolderStatus = (nasId: string, shareFolderId: string) =>
     statuses.find((s) => s.nasId === nasId && s.shareFolderId === shareFolderId)
 
-  const handleLock = async () => {
-    await api.lock()
-    onLock()
+  const handleLogout = async () => {
+    await api.logout()
+    onLogout()
   }
 
   const handlePollNow = async () => {
@@ -556,9 +556,9 @@ export function DashboardPage({ onLock }: { onLock: () => void }) {
               <Settings className="h-4 w-4" />
               Settings
             </Button>
-            <Button variant="destructive" size="sm" onClick={handleLock}>
-              <Lock className="h-4 w-4" />
-              Lock
+            <Button variant="destructive" size="sm" onClick={handleLogout}>
+              <LogOut className="h-4 w-4" />
+              Logout
             </Button>
           </div>
         </div>

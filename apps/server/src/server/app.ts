@@ -102,7 +102,7 @@ api.post('/unlock', async (c) => {
   }
 })
 
-api.post('/lock', (c) => {
+api.post('/logout', (c) => {
   store.lockUI()
   deleteCookie(c, 'session', { path: '/' })
   return c.json({ success: true })

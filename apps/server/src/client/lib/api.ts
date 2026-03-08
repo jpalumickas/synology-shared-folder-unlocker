@@ -38,7 +38,7 @@ export const api = {
       body: JSON.stringify({ password }),
     }),
 
-  lock: () => request<{ success: boolean }>('/lock', { method: 'POST' }),
+  logout: () => request<{ success: boolean }>('/logout', { method: 'POST' }),
 
   getNasList: () => request<NasDevice[]>('/nas'),
 
