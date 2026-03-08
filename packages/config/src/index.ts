@@ -3,7 +3,7 @@ export {
   loadConfig,
   configExists,
   verifyConfigPassword,
-} from './crypto.js'
+} from './crypto.ts'
 
 export type {
   NasDevice,
@@ -11,4 +11,4 @@ export type {
   AppConfig,
   ShareFolderStatus,
   AppStatus,
-} from './types.js'
+} from './types.ts'

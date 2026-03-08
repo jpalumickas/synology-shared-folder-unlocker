@@ -3,7 +3,7 @@ import { mkdtemp, rm, readFile } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { join } from 'node:path'
 import { tmpdir } from 'node:os'
-import type { AppConfig } from './types.js'
+import type { AppConfig } from './types.ts'
 
 let tmpDir: string
 let originalEnv: string | undefined

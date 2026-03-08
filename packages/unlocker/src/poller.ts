@@ -1,5 +1,5 @@
-import { store } from './store.js'
-import { checkShareFolderStatus, unlockShareFolder } from './ssh.js'
+import { store } from './store.ts'
+import { checkShareFolderStatus, unlockShareFolder } from './ssh.ts'
 
 let pollInterval: ReturnType<typeof setInterval> | null = null
 
