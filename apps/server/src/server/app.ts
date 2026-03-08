@@ -4,19 +4,19 @@ import { createMiddleware } from 'hono/factory';
 import { serveStatic } from '@hono/node-server/serve-static';
 import { readFile } from 'node:fs/promises';
 import { randomUUID } from 'node:crypto';
-import { store } from './store.js';
+import {
+  store,
+  startPoller,
+  restartPoller,
+  pollOnce,
+  unlockShare,
+} from '@synology-unlocker/unlocker';
 import {
   saveConfig,
   loadConfig,
   configExists,
-} from './crypto.js';
-import {
-  startPoller,
-  restartPoller,
-  pollOnce,
-} from './poller.js';
-import { unlockShare } from './ssh.js';
-import type { AppConfig, NasDevice, EncryptedShare } from '../shared/types.js';
+} from '@synology-unlocker/config';
+import type { AppConfig, NasDevice, EncryptedShare } from '@synology-unlocker/config';
 
 const app = new Hono();
 const api = new Hono();

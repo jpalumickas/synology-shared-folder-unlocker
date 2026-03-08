@@ -1,5 +1,5 @@
 import { Client } from 'ssh2';
-import type { NasDevice, EncryptedShare } from '../shared/types.js';
+import type { NasDevice, EncryptedShare } from '@synology-unlocker/config';
 
 interface CommandResult {
   stdout: string;
