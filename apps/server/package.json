@@ -14,6 +14,7 @@
   "dependencies": {
     "@hono/node-server": "^1.14.0",
     "@synology-shared-folder-unlocker/config": "workspace:*",
+    "@synology-shared-folder-unlocker/theme": "workspace:*",
     "@synology-shared-folder-unlocker/unlocker": "workspace:*",
     "hono": "^4.7.0",
     "react": "^19.0.0",
