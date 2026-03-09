@@ -56,6 +56,7 @@ COPY --from=builder /app/apps/client/dist ./apps/server/dist/client
 ENV NODE_ENV=production
 ENV DATA_PATH=/data
 ENV PORT=3001
+ENV HOST=0.0.0.0
 
 RUN mkdir -p /data && chown app:app /data
 

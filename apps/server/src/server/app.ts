@@ -1,4 +1,5 @@
 import { Hono } from 'hono'
+import type { Context } from 'hono'
 import { getCookie, setCookie, deleteCookie } from 'hono/cookie'
 import { createMiddleware } from 'hono/factory'
 import { serveStatic } from '@hono/node-server/serve-static'
@@ -21,6 +22,17 @@ import {
   type NasDevice,
   type EncryptedShareFolder,
 } from '@synology-shared-folder-unlocker/config'
+
+function setSessionCookie(c: Context, token: string) {
+  const isSecure = new URL(c.req.url).protocol === 'https:'
+  setCookie(c, 'session', token, {
+    httpOnly: true,
+    sameSite: 'Strict',
+    secure: isSecure,
+    path: '/',
+    maxAge: 60 * 60 * 24 * 7,
+  })
+}
 
 function stripPassword(nas: NasDevice): Omit<NasDevice, 'password'> {
   const { password, ...rest } = nas
@@ -108,13 +120,7 @@ api.post('/init', async (c) => {
   const config: AppConfig = { pollingInterval: 120, nasList: [] }
   await saveConfig(config, password)
   const sessionToken = store.unlock(config, password)
-
-  setCookie(c, 'session', sessionToken, {
-    httpOnly: true,
-    sameSite: 'Strict',
-    path: '/',
-    maxAge: 60 * 60 * 24 * 7,
-  })
+  setSessionCookie(c, sessionToken)
 
   return c.json({ success: true })
 })
@@ -134,13 +140,7 @@ api.post('/unlock', rateLimitAuth, async (c) => {
   try {
     const config = (await loadConfig(password)) as AppConfig
     const sessionToken = store.unlock(config, password)
-
-    setCookie(c, 'session', sessionToken, {
-      httpOnly: true,
-      sameSite: 'Strict',
-      path: '/',
-      maxAge: 60 * 60 * 24 * 7,
-    })
+    setSessionCookie(c, sessionToken)
 
     startPoller()
     return c.json({ success: true })
