@@ -298,86 +298,15 @@ function ShareFolderForm({
   )
 }
 
-// --- Settings Form ---
-
-function SettingsForm({
-  initialInterval,
-  onSubmit,
-  onCancel,
-}: {
-  initialInterval: number
-  onSubmit: (interval: number) => Promise<void>
-  onCancel: () => void
-}) {
-  const [submitError, setSubmitError] = useState('')
-
-  const form = useAppForm({
-    defaultValues: {
-      interval: initialInterval,
-    },
-    validators: {
-      onSubmit: z.object({
-        interval: z.number().min(10, 'Minimum interval is 10 seconds'),
-      }),
-    },
-    onSubmit: async ({ value }) => {
-      setSubmitError('')
-      try {
-        await onSubmit(value.interval)
-      } catch (err) {
-        setSubmitError(err instanceof Error ? err.message : 'Failed')
-      }
-    },
-  })
-
-  return (
-    <form
-      onSubmit={(e) => {
-        e.preventDefault()
-        form.handleSubmit()
-      }}
-      autoComplete="off"
-      className="space-y-4"
-    >
-      <form.Field name="interval">
-        {(field) => (
-          <FormWrapper
-            label="Polling Interval (seconds)"
-            error={getFieldError(field)}
-            description="How often to check and auto-unlock share folders (minimum 10s)"
-          >
-            <Input
-              type="number"
-              min={10}
-              value={field.state.value}
-              onChange={(e) => field.handleChange(Number(e.target.value))}
-              onBlur={field.handleBlur}
-            />
-          </FormWrapper>
-        )}
-      </form.Field>
-
-      {submitError && <p className="text-sm text-destructive">{submitError}</p>}
-
-      <div className="flex gap-2 justify-end pt-2">
-        <Button type="button" variant="outline" onClick={onCancel}>
-          Cancel
-        </Button>
-        <form.Subscribe selector={(state) => state.isSubmitting}>
-          {(isSubmitting) => (
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          )}
-        </form.Subscribe>
-      </div>
-    </form>
-  )
-}
-
 // --- Dashboard Page ---
 
-export function DashboardPage({ onLogout }: { onLogout: () => void }) {
+export function DashboardPage({
+  onLogout,
+  onSettings,
+}: {
+  onLogout: () => void
+  onSettings: () => void
+}) {
   const [nasList, setNasList] = useState<NasDevice[]>([])
   const [statuses, setStatuses] = useState<ShareFolderStatus[]>([])
   const [pollingInterval, setPollingInterval] = useState(120)
@@ -393,7 +322,6 @@ export function DashboardPage({ onLogout }: { onLogout: () => void }) {
     nasId: string
     shareFolder: { id: string; name: string; password: string }
   } | null>(null)
-  const [showSettings, setShowSettings] = useState(false)
   const [polling, setPolling] = useState(false)
 
   const fetchData = useCallback(async () => {
@@ -517,12 +445,6 @@ export function DashboardPage({ onLogout }: { onLogout: () => void }) {
     }
   }
 
-  const handleSaveSettings = async (interval: number) => {
-    await api.updateSettings({ pollingInterval: interval })
-    setPollingInterval(interval)
-    setShowSettings(false)
-  }
-
   if (loading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
@@ -557,11 +479,7 @@ export function DashboardPage({ onLogout }: { onLogout: () => void }) {
               <RefreshCw className={cn('h-4 w-4', polling && 'animate-spin')} />
               {polling ? 'Checking...' : 'Check Now'}
             </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => setShowSettings(true)}
-            >
+            <Button variant="outline" size="sm" onClick={onSettings}>
               <Settings className="h-4 w-4" />
               Settings
             </Button>
@@ -801,19 +719,6 @@ export function DashboardPage({ onLogout }: { onLogout: () => void }) {
               onCancel={() => setEditingShareFolder(null)}
             />
           )}
-        </DialogContent>
-      </Dialog>
-
-      <Dialog open={showSettings} onOpenChange={setShowSettings}>
-        <DialogContent>
-          <DialogHeader>
-            <DialogTitle>Settings</DialogTitle>
-          </DialogHeader>
-          <SettingsForm
-            initialInterval={pollingInterval}
-            onSubmit={handleSaveSettings}
-            onCancel={() => setShowSettings(false)}
-          />
         </DialogContent>
       </Dialog>
     </div>

@@ -108,4 +108,10 @@ export const api = {
       method: 'PUT',
       body: JSON.stringify(data),
     }),
+
+  changePassword: (currentPassword: string, newPassword: string) =>
+    request<{ success: boolean }>('/change-password', {
+      method: 'POST',
+      body: JSON.stringify({ currentPassword, newPassword }),
+    }),
 }

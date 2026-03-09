@@ -15,11 +15,10 @@ import {
   saveConfig,
   loadConfig,
   configExists,
-} from '@synology-shared-folder-unlocker/config'
-import type {
-  AppConfig,
-  NasDevice,
-  EncryptedShareFolder,
+  verifyConfigPassword,
+  type AppConfig,
+  type NasDevice,
+  type EncryptedShareFolder,
 } from '@synology-shared-folder-unlocker/config'
 
 const app = new Hono()
@@ -296,6 +295,28 @@ api.put('/settings', requireSession, async (c) => {
   restartPoller()
 
   return c.json({ pollingInterval: config.pollingInterval })
+})
+
+api.post('/change-password', requireSession, async (c) => {
+  const { currentPassword, newPassword } = await c.req.json<{
+    currentPassword: string
+    newPassword: string
+  }>()
+
+  if (!newPassword || newPassword.length < 8) {
+    return c.json({ error: 'New password must be at least 8 characters' }, 400)
+  }
+
+  const valid = await verifyConfigPassword(currentPassword)
+  if (!valid) {
+    return c.json({ error: 'Current password is incorrect' }, 401)
+  }
+
+  const config = store.getConfig()!
+  await saveConfig(config, newPassword)
+  store.setMasterPassword(newPassword)
+
+  return c.json({ success: true })
 })
 
 // Mount API

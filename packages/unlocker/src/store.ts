@@ -62,6 +62,10 @@ class Store {
     return this.masterPassword
   }
 
+  setMasterPassword(password: string): void {
+    this.masterPassword = password
+  }
+
   updateConfig(config: AppConfig): void {
     this.config = config
   }

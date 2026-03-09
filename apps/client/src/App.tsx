@@ -3,8 +3,9 @@ import { api } from './lib/api'
 import { InitPage } from './pages/InitPage'
 import { UnlockPage } from './pages/UnlockPage'
 import { DashboardPage } from './pages/DashboardPage'
+import { SettingsPage } from './pages/SettingsPage'
 
-type AppView = 'loading' | 'init' | 'unlock' | 'dashboard'
+type AppView = 'loading' | 'init' | 'unlock' | 'dashboard' | 'settings'
 
 export function App() {
   const [view, setView] = useState<AppView>('loading')
@@ -35,6 +36,13 @@ export function App() {
     case 'unlock':
       return <UnlockPage onComplete={() => setView('dashboard')} />
     case 'dashboard':
-      return <DashboardPage onLogout={() => setView('unlock')} />
+      return (
+        <DashboardPage
+          onLogout={() => setView('unlock')}
+          onSettings={() => setView('settings')}
+        />
+      )
+    case 'settings':
+      return <SettingsPage onBack={() => setView('dashboard')} />
   }
 }
