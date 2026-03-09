@@ -28,6 +28,36 @@ function stripPassword(nas: NasDevice): Omit<NasDevice, 'password'> {
   return rest
 }
 
+// Rate limiting for auth endpoints to prevent brute-force and CPU exhaustion
+const RATE_LIMIT_WINDOW = 15 * 60 * 1000 // 15 minutes
+const RATE_LIMIT_MAX = 5
+const failedAuthAttempts: number[] = []
+
+function pruneOldAttempts() {
+  const cutoff = Date.now() - RATE_LIMIT_WINDOW
+  while (failedAuthAttempts.length > 0 && failedAuthAttempts[0] < cutoff) {
+    failedAuthAttempts.shift()
+  }
+}
+
+export function resetRateLimit() {
+  failedAuthAttempts.length = 0
+}
+
+const rateLimitAuth = createMiddleware(async (c, next) => {
+  pruneOldAttempts()
+
+  if (failedAuthAttempts.length >= RATE_LIMIT_MAX) {
+    return c.json({ error: 'Too many attempts, try again later' }, 429)
+  }
+
+  await next()
+
+  if (c.res.status === 401) {
+    failedAuthAttempts.push(Date.now())
+  }
+})
+
 const app = new Hono()
 const api = new Hono()
 
@@ -68,10 +98,12 @@ api.post('/init', async (c) => {
     return c.json({ error: 'Already initialized' }, 400)
   }
 
-  const { password } = await c.req.json<{ password: string }>()
-  if (!password || password.length < 8) {
+  const body = await c.req.json<{ password?: unknown }>()
+  if (typeof body.password !== 'string' || body.password.length < 8) {
     return c.json({ error: 'Password must be at least 8 characters' }, 400)
   }
+
+  const { password } = body
 
   const config: AppConfig = { pollingInterval: 120, nasList: [] }
   await saveConfig(config, password)
@@ -87,12 +119,17 @@ api.post('/init', async (c) => {
   return c.json({ success: true })
 })
 
-api.post('/unlock', async (c) => {
+api.post('/unlock', rateLimitAuth, async (c) => {
   if (!(await configExists())) {
     return c.json({ error: 'Not initialized' }, 400)
   }
 
-  const { password } = await c.req.json<{ password: string }>()
+  const body = await c.req.json<{ password?: unknown }>()
+  if (typeof body.password !== 'string' || body.password.length === 0) {
+    return c.json({ error: 'Password is required' }, 400)
+  }
+
+  const { password } = body
 
   try {
     const config = (await loadConfig(password)) as AppConfig
@@ -137,29 +174,50 @@ api.get('/nas', requireSession, (c) => {
 })
 
 api.post('/nas', requireSession, async (c) => {
-  const body =
-    await c.req.json<
-      Omit<NasDevice, 'id' | 'shareFolders' | 'hostFingerprint'>
-    >()
+  const body = await c.req.json<Record<string, unknown>>()
+
+  if (typeof body.name !== 'string' || body.name.length === 0) {
+    return c.json({ error: 'Name is required' }, 400)
+  }
+
+  if (typeof body.host !== 'string' || body.host.length === 0) {
+    return c.json({ error: 'Host is required' }, 400)
+  }
+
+  if (typeof body.username !== 'string' || body.username.length === 0) {
+    return c.json({ error: 'Username is required' }, 400)
+  }
+
+  if (typeof body.password !== 'string' || body.password.length === 0) {
+    return c.json({ error: 'Password is required' }, 400)
+  }
+
+  if (
+    body.port !== undefined &&
+    (typeof body.port !== 'number' || body.port < 1 || body.port > 65535)
+  ) {
+    return c.json({ error: 'Port must be a number between 1 and 65535' }, 400)
+  }
+
   const config = store.requireConfig()
   const password = store.requireMasterPassword()
 
-  const port = body.port || 22
+  const port = (body.port as number) || 22
 
   let hostFingerprint: string
   try {
-    hostFingerprint = await fetchHostFingerprint(body.host, port)
+    hostFingerprint = await fetchHostFingerprint(body.host as string, port)
   } catch {
     return c.json({ error: 'Could not verify host fingerprint' }, 400)
   }
 
   const nas: NasDevice = {
     id: randomUUID(),
-    name: body.name,
-    host: body.host,
+    name: body.name as string,
+    host: body.host as string,
     port,
-    username: body.username,
-    password: body.password,
+    username: body.username as string,
+    password: body.password as string,
     hostFingerprint,
     shareFolders: [],
   }
@@ -173,8 +231,29 @@ api.post('/nas', requireSession, async (c) => {
 
 api.put('/nas/:id', requireSession, async (c) => {
   const { id } = c.req.param()
-  const body =
-    await c.req.json<Partial<Pick<NasDevice, 'name' | 'host' | 'port'>>>()
+  const body = await c.req.json<Record<string, unknown>>()
+
+  if (
+    body.name !== undefined &&
+    (typeof body.name !== 'string' || body.name.length === 0)
+  ) {
+    return c.json({ error: 'Name must be a non-empty string' }, 400)
+  }
+
+  if (
+    body.host !== undefined &&
+    (typeof body.host !== 'string' || body.host.length === 0)
+  ) {
+    return c.json({ error: 'Host must be a non-empty string' }, 400)
+  }
+
+  if (
+    body.port !== undefined &&
+    (typeof body.port !== 'number' || body.port < 1 || body.port > 65535)
+  ) {
+    return c.json({ error: 'Port must be a number between 1 and 65535' }, 400)
+  }
+
   const config = store.requireConfig()
   const password = store.requireMasterPassword()
 
@@ -183,15 +262,15 @@ api.put('/nas/:id', requireSession, async (c) => {
     return c.json({ error: 'NAS not found' }, 404)
   }
 
-  if (body.name !== undefined) {
+  if (typeof body.name === 'string') {
     nas.name = body.name
   }
 
-  if (body.host !== undefined) {
+  if (typeof body.host === 'string') {
     nas.host = body.host
   }
 
-  if (body.port !== undefined) {
+  if (typeof body.port === 'number') {
     nas.port = body.port
   }
 
@@ -213,7 +292,16 @@ api.put('/nas/:id', requireSession, async (c) => {
 
 api.put('/nas/:id/credentials', requireSession, async (c) => {
   const { id } = c.req.param()
-  const body = await c.req.json<{ username: string; password: string }>()
+  const body = await c.req.json<Record<string, unknown>>()
+
+  if (typeof body.username !== 'string' || body.username.length === 0) {
+    return c.json({ error: 'Username is required' }, 400)
+  }
+
+  if (typeof body.password !== 'string' || body.password.length === 0) {
+    return c.json({ error: 'Password is required' }, 400)
+  }
+
   const config = store.requireConfig()
   const masterPassword = store.requireMasterPassword()
 
@@ -247,7 +335,16 @@ api.delete('/nas/:id', requireSession, async (c) => {
 
 api.post('/nas/:nasId/share-folders', requireSession, async (c) => {
   const { nasId } = c.req.param()
-  const body = await c.req.json<Omit<EncryptedShareFolder, 'id'>>()
+  const body = await c.req.json<Record<string, unknown>>()
+
+  if (typeof body.name !== 'string' || body.name.length === 0) {
+    return c.json({ error: 'Name is required' }, 400)
+  }
+
+  if (typeof body.password !== 'string' || body.password.length === 0) {
+    return c.json({ error: 'Password is required' }, 400)
+  }
+
   const config = store.requireConfig()
   const password = store.requireMasterPassword()
 
@@ -276,7 +373,19 @@ api.put(
   requireSession,
   async (c) => {
     const { nasId, shareFolderId } = c.req.param()
-    const body = await c.req.json<Partial<EncryptedShareFolder>>()
+    const body = await c.req.json<Record<string, unknown>>()
+
+    if (
+      body.name !== undefined &&
+      (typeof body.name !== 'string' || body.name.length === 0)
+    ) {
+      return c.json({ error: 'Name must be a non-empty string' }, 400)
+    }
+
+    if (body.password !== undefined && typeof body.password !== 'string') {
+      return c.json({ error: 'Password must be a string' }, 400)
+    }
+
     const config = store.requireConfig()
     const password = store.requireMasterPassword()
 
@@ -290,11 +399,11 @@ api.put(
       return c.json({ error: 'Share folder not found' }, 404)
     }
 
-    if (body.name !== undefined) {
+    if (typeof body.name === 'string') {
       shareFolder.name = body.name
     }
 
-    if (body.password !== undefined) {
+    if (typeof body.password === 'string') {
       shareFolder.password = body.password
     }
 
@@ -362,11 +471,19 @@ api.get('/settings', requireSession, (c) => {
 })
 
 api.put('/settings', requireSession, async (c) => {
-  const body = await c.req.json<{ pollingInterval?: number }>()
+  const body = await c.req.json<Record<string, unknown>>()
+
+  if (
+    body.pollingInterval !== undefined &&
+    (typeof body.pollingInterval !== 'number' || body.pollingInterval < 1)
+  ) {
+    return c.json({ error: 'Polling interval must be a positive number' }, 400)
+  }
+
   const config = store.requireConfig()
   const password = store.requireMasterPassword()
 
-  if (body.pollingInterval !== undefined) {
+  if (typeof body.pollingInterval === 'number') {
     config.pollingInterval = Math.max(10, body.pollingInterval)
   }
 
@@ -377,15 +494,21 @@ api.put('/settings', requireSession, async (c) => {
   return c.json({ pollingInterval: config.pollingInterval })
 })
 
-api.post('/change-password', requireSession, async (c) => {
-  const { currentPassword, newPassword } = await c.req.json<{
-    currentPassword: string
-    newPassword: string
-  }>()
+api.post('/change-password', requireSession, rateLimitAuth, async (c) => {
+  const body = await c.req.json<Record<string, unknown>>()
 
-  if (!newPassword || newPassword.length < 8) {
+  if (
+    typeof body.currentPassword !== 'string' ||
+    body.currentPassword.length === 0
+  ) {
+    return c.json({ error: 'Current password is required' }, 400)
+  }
+
+  if (typeof body.newPassword !== 'string' || body.newPassword.length < 8) {
     return c.json({ error: 'New password must be at least 8 characters' }, 400)
   }
+
+  const { currentPassword, newPassword } = body
 
   const valid = await verifyConfigPassword(currentPassword)
   if (!valid) {

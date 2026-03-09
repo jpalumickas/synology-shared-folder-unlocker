@@ -2,12 +2,15 @@ import {
   randomBytes,
   createCipheriv,
   createDecipheriv,
-  pbkdf2Sync,
+  pbkdf2 as pbkdf2Cb,
 } from 'node:crypto'
+import { promisify } from 'node:util'
 import { readFile, writeFile, mkdir } from 'node:fs/promises'
 import { existsSync } from 'node:fs'
 import { dirname, join } from 'node:path'
 import { homedir } from 'node:os'
+
+const pbkdf2 = promisify(pbkdf2Cb)
 
 const ALGORITHM = 'aes-256-gcm'
 const KEY_LENGTH = 32
@@ -25,13 +28,16 @@ interface EncryptedData {
   verifyTag: string
 }
 
-function deriveKey(password: string, salt: Buffer): Buffer {
-  return pbkdf2Sync(password, salt, PBKDF2_ITERATIONS, KEY_LENGTH, 'sha512')
+async function deriveKey(password: string, salt: Buffer): Promise<Buffer> {
+  return pbkdf2(password, salt, PBKDF2_ITERATIONS, KEY_LENGTH, 'sha512')
 }
 
-function encrypt(plaintext: string, password: string): EncryptedData {
+async function encrypt(
+  plaintext: string,
+  password: string
+): Promise<EncryptedData> {
   const salt = randomBytes(SALT_LENGTH)
-  const key = deriveKey(password, salt)
+  const key = await deriveKey(password, salt)
 
   const iv = randomBytes(IV_LENGTH)
   const cipher = createCipheriv(ALGORITHM, key, iv)
@@ -60,9 +66,9 @@ function encrypt(plaintext: string, password: string): EncryptedData {
   }
 }
 
-function decrypt(enc: EncryptedData, password: string): string {
+async function decrypt(enc: EncryptedData, password: string): Promise<string> {
   const salt = Buffer.from(enc.salt, 'hex')
-  const key = deriveKey(password, salt)
+  const key = await deriveKey(password, salt)
   const iv = Buffer.from(enc.iv, 'hex')
   const tag = Buffer.from(enc.tag, 'hex')
   const data = Buffer.from(enc.data, 'hex')
@@ -94,14 +100,14 @@ export async function saveConfig(
     await mkdir(dir, { recursive: true })
   }
 
-  const encrypted = encrypt(JSON.stringify(config), password)
+  const encrypted = await encrypt(JSON.stringify(config), password)
   await writeFile(CONFIG_PATH, JSON.stringify(encrypted, null, 2), 'utf8')
 }
 
 export async function loadConfig(password: string): Promise<object> {
   const raw = await readFile(CONFIG_PATH, 'utf8')
   const encrypted: EncryptedData = JSON.parse(raw)
-  const decrypted = decrypt(encrypted, password)
+  const decrypted = await decrypt(encrypted, password)
   return JSON.parse(decrypted)
 }
 
@@ -110,7 +116,7 @@ export async function verifyConfigPassword(password: string): Promise<boolean> {
     const raw = await readFile(CONFIG_PATH, 'utf8')
     const enc: EncryptedData = JSON.parse(raw)
     const salt = Buffer.from(enc.salt, 'hex')
-    const key = deriveKey(password, salt)
+    const key = await deriveKey(password, salt)
     const iv = Buffer.from(enc.verifyIv, 'hex')
     const tag = Buffer.from(enc.verifyTag, 'hex')
     const data = Buffer.from(enc.verifyData, 'hex')

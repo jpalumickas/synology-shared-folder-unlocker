@@ -37,7 +37,8 @@ vi.mock('@synology-shared-folder-unlocker/config', async (importOriginal) => {
 })
 
 const { store } = await import('@synology-shared-folder-unlocker/unlocker')
-const { app } = await import('./app.js')
+const { loadConfig } = await import('@synology-shared-folder-unlocker/config')
+const { app, resetRateLimit } = await import('./app.js')
 
 function makeNas(overrides?: Partial<NasDevice>): NasDevice {
   return {
@@ -72,6 +73,7 @@ async function apiRequest(path: string, options?: RequestInit) {
 describe('NAS API password stripping', () => {
   beforeEach(() => {
     vi.mocked(store.requireConfig).mockReturnValue(makeConfig())
+    resetRateLimit()
   })
 
   describe('GET /api/nas', () => {
@@ -178,5 +180,100 @@ describe('NAS API password stripping', () => {
 
       expect(status).toBe(404)
     })
+  })
+})
+
+describe('Rate limiting', () => {
+  beforeEach(() => {
+    resetRateLimit()
+    vi.mocked(loadConfig).mockRejectedValue(new Error('Invalid password'))
+  })
+
+  it('allows requests under the limit', async () => {
+    const { status } = await apiRequest('/unlock', {
+      method: 'POST',
+      body: JSON.stringify({ password: 'wrong' }),
+    })
+
+    expect(status).toBe(401)
+  })
+
+  it('returns 429 after 5 failed attempts', async () => {
+    for (let i = 0; i < 5; i++) {
+      await apiRequest('/unlock', {
+        method: 'POST',
+        body: JSON.stringify({ password: 'wrong' }),
+      })
+    }
+
+    const { status, body } = await apiRequest('/unlock', {
+      method: 'POST',
+      body: JSON.stringify({ password: 'wrong' }),
+    })
+
+    expect(status).toBe(429)
+    expect(body).toHaveProperty('error', 'Too many attempts, try again later')
+  })
+})
+
+describe('Input validation', () => {
+  beforeEach(() => {
+    vi.mocked(store.requireConfig).mockReturnValue(makeConfig())
+    resetRateLimit()
+  })
+
+  it('POST /nas rejects missing name', async () => {
+    const { status } = await apiRequest('/nas', {
+      method: 'POST',
+      body: JSON.stringify({
+        host: '10.0.0.1',
+        username: 'root',
+        password: 'secret',
+      }),
+    })
+
+    expect(status).toBe(400)
+  })
+
+  it('POST /nas rejects invalid port', async () => {
+    const { status } = await apiRequest('/nas', {
+      method: 'POST',
+      body: JSON.stringify({
+        name: 'NAS',
+        host: '10.0.0.1',
+        port: 99999,
+        username: 'root',
+        password: 'secret',
+      }),
+    })
+
+    expect(status).toBe(400)
+  })
+
+  it('PUT /nas/:id/credentials rejects missing username', async () => {
+    const { status } = await apiRequest('/nas/nas-1/credentials', {
+      method: 'PUT',
+      body: JSON.stringify({ password: 'secret' }),
+    })
+
+    expect(status).toBe(400)
+  })
+
+  it('PUT /nas/:id/credentials rejects missing password', async () => {
+    const { status } = await apiRequest('/nas/nas-1/credentials', {
+      method: 'PUT',
+      body: JSON.stringify({ username: 'admin' }),
+    })
+
+    expect(status).toBe(400)
+  })
+
+  it('POST /unlock rejects missing password', async () => {
+    const { status } = await apiRequest('/unlock', {
+      method: 'POST',
+      body: JSON.stringify({}),
+    })
+
+    expect(status).toBe(400)
   })
 })
