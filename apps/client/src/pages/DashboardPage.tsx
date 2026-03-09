@@ -17,18 +17,16 @@ import {
 } from '@synology-shared-folder-unlocker/theme'
 import {
   FolderLock,
-  LogOut,
   Pencil,
   Plus,
   RefreshCw,
   Server,
-  Settings,
   Trash2,
   Unlock,
 } from 'lucide-react'
-import { useRouter, useNavigate } from '@tanstack/react-router'
 import { api } from '../lib/api'
 import { useAppForm } from '../hooks/form/useForm'
+import { Navbar } from '../components/Navbar'
 import type {
   NasDevice,
   ShareFolderStatus,
@@ -245,8 +243,6 @@ function ShareFolderForm({
 // --- Dashboard Page ---
 
 export function DashboardPage() {
-  const router = useRouter()
-  const navigate = useNavigate()
   const [nasList, setNasList] = useState<NasDevice[]>([])
   const [statuses, setStatuses] = useState<ShareFolderStatus[]>([])
   const [pollingInterval, setPollingInterval] = useState(120)
@@ -300,12 +296,6 @@ export function DashboardPage() {
 
   const getShareFolderStatus = (nasId: string, shareFolderId: string) =>
     statuses.find((s) => s.nasId === nasId && s.shareFolderId === shareFolderId)
-
-  const handleLogout = async () => {
-    await api.logout()
-    await router.invalidate()
-    await navigate({ to: '/' })
-  }
 
   const handlePollNow = async () => {
     setPolling(true)
@@ -399,42 +389,19 @@ export function DashboardPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      {/* Header */}
-      <header className="border-b bg-card">
-        <div className="max-w-5xl mx-auto px-4 py-4 flex items-center justify-between">
-          <div className="flex items-center gap-3">
-            <div className="flex h-9 w-9 items-center justify-center rounded-lg bg-primary/10">
-              <Server className="h-4 w-4 text-primary" />
-            </div>
-            <h1 className="text-lg font-semibold">
-              Synology Shared Drives Unlocker
-            </h1>
-          </div>
-          <div className="flex gap-2">
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={handlePollNow}
-              disabled={polling}
-            >
-              <RefreshCw className={cn('h-4 w-4', polling && 'animate-spin')} />
-              {polling ? 'Checking...' : 'Check Now'}
-            </Button>
-            <Button
-              variant="outline"
-              size="sm"
-              onClick={() => navigate({ to: '/settings' })}
-            >
-              <Settings className="h-4 w-4" />
-              Settings
-            </Button>
-            <Button variant="destructive" size="sm" onClick={handleLogout}>
-              <LogOut className="h-4 w-4" />
-              Logout
-            </Button>
-          </div>
-        </div>
-      </header>
+      <Navbar>
+        <Button
+          variant="outline"
+          size="sm"
+          onClick={handlePollNow}
+          disabled={polling}
+        >
+          <RefreshCw className={cn('h-4 w-4', polling && 'animate-spin')} />
+          <span className="hidden sm:inline">
+            {polling ? 'Checking...' : 'Check Now'}
+          </span>
+        </Button>
+      </Navbar>
 
       {/* Content */}
       <main className="max-w-5xl mx-auto px-4 py-6">

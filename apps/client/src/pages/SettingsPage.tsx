@@ -1,7 +1,6 @@
 import { useState, useEffect } from 'react'
 import { z } from 'zod'
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
@@ -9,10 +8,10 @@ import {
   CardTitle,
   Separator,
 } from '@synology-shared-folder-unlocker/theme'
-import { ArrowLeft, Clock, Shield } from 'lucide-react'
-import { useNavigate } from '@tanstack/react-router'
+import { Clock, Shield } from 'lucide-react'
 import { api } from '../lib/api'
 import { useAppForm } from '../hooks/form/useForm'
+import { Navbar } from '../components/Navbar'
 
 function PollingForm({ initialInterval }: { initialInterval: number }) {
   const [submitError, setSubmitError] = useState('')
@@ -175,7 +174,6 @@ function ChangePasswordForm() {
 }
 
 export function SettingsPage() {
-  const navigate = useNavigate()
   const [pollingInterval, setPollingInterval] = useState<number | null>(null)
 
   useEffect(() => {
@@ -184,18 +182,7 @@ export function SettingsPage() {
 
   return (
     <div className="min-h-screen bg-background">
-      <header className="border-b bg-card">
-        <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Button
-            variant="ghost"
-            size="icon-sm"
-            onClick={() => navigate({ to: '/' })}
-          >
-            <ArrowLeft className="h-4 w-4" />
-          </Button>
-          <h1 className="text-lg font-semibold">Settings</h1>
-        </div>
-      </header>
+      <Navbar />
 
       <main className="max-w-2xl mx-auto px-4 py-6 space-y-6">
         <Card>
