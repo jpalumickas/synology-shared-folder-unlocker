@@ -49,6 +49,7 @@ const settingsRoute = createRoute({
     if (!context.status.initialized) {
       throw redirect({ to: '/init' })
     }
+
     if (!context.status.unlocked || !context.status.sessionValid) {
       throw redirect({ to: '/unlock' })
     }
@@ -78,6 +79,7 @@ const unlockRoute = createRoute({
     if (!context.status.initialized) {
       throw redirect({ to: '/init' })
     }
+
     if (context.status.unlocked && context.status.sessionValid) {
       throw redirect({ to: '/' })
     }

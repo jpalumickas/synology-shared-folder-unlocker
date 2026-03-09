@@ -28,6 +28,7 @@ const requireUnlocked = createMiddleware(async (c, next) => {
   if (!store.isUnlocked) {
     return c.json({ error: 'App is locked' }, 403)
   }
+
   await next()
 })
 
@@ -35,10 +36,13 @@ const requireSession = createMiddleware(async (c, next) => {
   if (!store.isUnlocked) {
     return c.json({ error: 'App is locked' }, 403)
   }
+
   const token = getCookie(c, 'session')
+
   if (!store.isSessionValid(token)) {
     return c.json({ error: 'Session expired' }, 401)
   }
+
   await next()
 })
 
@@ -161,15 +165,19 @@ api.put('/nas/:id', requireSession, async (c) => {
   if (body.name !== undefined) {
     nas.name = body.name
   }
+
   if (body.host !== undefined) {
     nas.host = body.host
   }
+
   if (body.port !== undefined) {
     nas.port = body.port
   }
+
   if (body.username !== undefined) {
     nas.username = body.username
   }
+
   if (body.password !== undefined) {
     nas.password = body.password
   }
@@ -242,6 +250,7 @@ api.put(
     if (body.name !== undefined) {
       shareFolder.name = body.name
     }
+
     if (body.password !== undefined) {
       shareFolder.password = body.password
     }

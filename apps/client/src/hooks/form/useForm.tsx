@@ -14,13 +14,17 @@ function getFieldError(field: {
   if (field.state.meta.errors.length === 0) {
     return undefined
   }
+
   const err = field.state.meta.errors[0]
+
   if (!err) {
     return undefined
   }
+
   if (typeof err === 'string') {
     return err
   }
+
   if (typeof err === 'object' && 'message' in (err as object)) {
     return (err as { message: string }).message
   }

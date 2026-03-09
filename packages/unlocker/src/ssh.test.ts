@@ -45,6 +45,7 @@ vi.mock('ssh2', () => {
           cb(execError as Error, null as unknown as MockStream)
           return
         }
+
         const stream = new MockStream()
         stream.write = vi.fn((...args: unknown[]) => {
           capturedStdinData.push(String(args[0]))
@@ -54,6 +55,7 @@ vi.mock('ssh2', () => {
         if (result.stdout) {
           stream.emit('data', Buffer.from(result.stdout))
         }
+
         if (result.stderr) {
           stream.stderr.emit('data', Buffer.from(result.stderr))
         }

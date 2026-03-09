@@ -19,6 +19,7 @@ class Store {
     if (!token || !this.sessionToken) {
       return false
     }
+
     return token === this.sessionToken
   }
 
@@ -64,6 +65,7 @@ class Store {
     if (!this.config) {
       throw new Error('Store is not unlocked')
     }
+
     return this.config
   }
 
@@ -75,6 +77,7 @@ class Store {
     if (!this.masterPassword) {
       throw new Error('Store is not unlocked')
     }
+
     return this.masterPassword
   }
 

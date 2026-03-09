@@ -321,6 +321,7 @@ export function DashboardPage() {
     if (!editingNas) {
       return
     }
+
     await api.updateNas(editingNas.id, data)
     setEditingNas(null)
     fetchData()
@@ -330,6 +331,7 @@ export function DashboardPage() {
     if (!confirm('Delete this NAS device and all its share folders?')) {
       return
     }
+
     await api.deleteNas(id)
     fetchData()
   }
@@ -341,6 +343,7 @@ export function DashboardPage() {
     if (!addShareFolderNasId) {
       return
     }
+
     await api.addShareFolder(addShareFolderNasId, data)
     setAddShareFolderNasId(null)
     fetchData()
@@ -353,6 +356,7 @@ export function DashboardPage() {
     if (!editingShareFolder) {
       return
     }
+
     await api.updateShareFolder(
       editingShareFolder.nasId,
       editingShareFolder.shareFolder.id,
@@ -369,6 +373,7 @@ export function DashboardPage() {
     if (!confirm('Delete this share folder?')) {
       return
     }
+
     await api.deleteShareFolder(nasId, shareFolderId)
     fetchData()
   }

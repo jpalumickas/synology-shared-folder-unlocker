@@ -93,6 +93,7 @@ export async function saveConfig(
   if (!existsSync(dir)) {
     await mkdir(dir, { recursive: true })
   }
+
   const encrypted = encrypt(JSON.stringify(config), password)
   await writeFile(CONFIG_PATH, JSON.stringify(encrypted, null, 2), 'utf8')
 }

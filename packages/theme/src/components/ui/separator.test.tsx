@@ -9,6 +9,7 @@ function getSep(container: HTMLElement) {
   if (!el) {
     throw new Error('No element rendered')
   }
+
   return el
 }
 
