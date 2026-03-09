@@ -68,6 +68,46 @@ function executeCommand(
       username: nas.username,
       password: nas.password,
       readyTimeout: 10_000,
+      hostHash: 'sha256',
+      hostVerifier: (hash: string) => hash === nas.hostFingerprint,
+    })
+  })
+}
+
+export function fetchHostFingerprint(
+  host: string,
+  port: number
+): Promise<string> {
+  return new Promise((resolve, reject) => {
+    const conn = new Client()
+    const timeout = setTimeout(() => {
+      conn.end()
+      reject(new Error('SSH connection timeout'))
+    }, 10_000)
+
+    conn.connect({
+      host,
+      port,
+      username: 'root',
+      readyTimeout: 10_000,
+      hostHash: 'sha256',
+      hostVerifier: (hash: string) => {
+        clearTimeout(timeout)
+        conn.end()
+        resolve(hash)
+        return false
+      },
+    })
+
+    conn.on('error', (err) => {
+      clearTimeout(timeout)
+      if (
+        err.message === 'Handshake failed: host fingerprint verification failed'
+      ) {
+        return
+      }
+
+      reject(err)
     })
   })
 }

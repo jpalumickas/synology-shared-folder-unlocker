@@ -20,6 +20,7 @@ const config: AppConfig = {
       port: 22,
       username: 'admin',
       password: 'pw',
+      hostFingerprint: 'fp-1',
       shareFolders: [
         { id: 'sf-1', name: 'photos', password: 'enc1' },
         { id: 'sf-2', name: 'docs', password: 'enc2' },

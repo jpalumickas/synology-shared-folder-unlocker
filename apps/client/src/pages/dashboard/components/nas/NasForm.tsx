@@ -10,7 +10,9 @@ export function NasForm({
   onCancel,
 }: {
   initial?: NasDevice
-  onSubmit: (data: Omit<NasDevice, 'id' | 'shareFolders'>) => Promise<void>
+  onSubmit: (
+    data: Omit<NasDevice, 'id' | 'shareFolders' | 'hostFingerprint'>
+  ) => Promise<void>
   onCancel: () => void
 }) {
   const [submitError, setSubmitError] = useState('')
@@ -72,6 +74,12 @@ export function NasForm({
       <form.AppField name="port">
         {(field) => <field.NumberField label="SSH Port" />}
       </form.AppField>
+
+      {initial?.hostFingerprint && (
+        <p className="font-mono text-xs text-muted-foreground break-all">
+          SHA256:{initial.hostFingerprint}
+        </p>
+      )}
 
       <form.AppField name="username">
         {(field) => (

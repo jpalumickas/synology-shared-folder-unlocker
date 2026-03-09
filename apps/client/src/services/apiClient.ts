@@ -42,7 +42,7 @@ export const apiClient = {
 
   getNasList: () => request<NasDevice[]>('/nas'),
 
-  addNas: (data: Omit<NasDevice, 'id' | 'shareFolders'>) =>
+  addNas: (data: Omit<NasDevice, 'id' | 'shareFolders' | 'hostFingerprint'>) =>
     request<NasDevice>('/nas', {
       method: 'POST',
       body: JSON.stringify(data),

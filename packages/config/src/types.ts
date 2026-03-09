@@ -5,8 +5,14 @@ export interface NasDevice {
   port: number
   username: string
   password: string
+  hostFingerprint: string
   shareFolders: EncryptedShareFolder[]
 }
+
+export type AddNasParams = Omit<
+  NasDevice,
+  'id' | 'shareFolders' | 'hostFingerprint'
+>
 
 export interface EncryptedShareFolder {
   id: string

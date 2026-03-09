@@ -8,8 +8,9 @@ export function useAddNas() {
   const queryClient = useQueryClient()
 
   const { mutateAsync, ...rest } = useMutation({
-    mutationFn: (data: Omit<NasDevice, 'id' | 'shareFolders'>) =>
-      apiClient.addNas(data),
+    mutationFn: (
+      data: Omit<NasDevice, 'id' | 'shareFolders' | 'hostFingerprint'>
+    ) => apiClient.addNas(data),
     onSuccess: () => {
       toast.success('NAS device added')
       queryClient.invalidateQueries({ queryKey: queryKeys.nasList })

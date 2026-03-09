@@ -20,6 +20,7 @@ const makeConfig = (overrides?: Partial<AppConfig>): AppConfig => ({
       port: 22,
       username: 'admin',
       password: 'pw',
+      hostFingerprint: 'fp-1',
       shareFolders: [
         { id: 'sf-1', name: 'photos', password: 'enc1' },
         { id: 'sf-2', name: 'docs', password: 'enc2' },
@@ -304,6 +305,7 @@ describe('Store', () => {
             port: 22,
             username: 'admin',
             password: 'pw',
+            hostFingerprint: 'fp-1',
             shareFolders: [{ id: 'sf-1', name: 'photos', password: 'enc1' }],
           },
           {
@@ -313,6 +315,7 @@ describe('Store', () => {
             port: 22,
             username: 'admin',
             password: 'pw2',
+            hostFingerprint: 'fp-2',
             shareFolders: [
               { id: 'sf-3', name: 'music', password: 'enc3' },
               { id: 'sf-4', name: 'videos', password: 'enc4' },

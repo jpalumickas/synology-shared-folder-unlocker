@@ -10,6 +10,7 @@ import {
   restartPoller,
   pollOnce,
   unlockShareFolder,
+  fetchHostFingerprint,
 } from '@synology-shared-folder-unlocker/unlocker'
 import {
   saveConfig,
@@ -134,13 +135,23 @@ api.post('/nas', requireSession, async (c) => {
   const config = store.requireConfig()
   const password = store.requireMasterPassword()
 
+  const port = body.port || 22
+
+  let hostFingerprint: string
+  try {
+    hostFingerprint = await fetchHostFingerprint(body.host, port)
+  } catch {
+    return c.json({ error: 'Could not verify host fingerprint' }, 400)
+  }
+
   const nas: NasDevice = {
     id: randomUUID(),
     name: body.name,
     host: body.host,
-    port: body.port || 22,
+    port,
     username: body.username,
     password: body.password,
+    hostFingerprint,
     shareFolders: [],
   }
 
@@ -180,6 +191,16 @@ api.put('/nas/:id', requireSession, async (c) => {
 
   if (body.password !== undefined) {
     nas.password = body.password
+  }
+
+  const hostChanged = body.host !== undefined || body.port !== undefined
+
+  if (hostChanged) {
+    try {
+      nas.hostFingerprint = await fetchHostFingerprint(nas.host, nas.port)
+    } catch {
+      return c.json({ error: 'Could not verify host fingerprint' }, 400)
+    }
   }
 
   store.updateConfig(config)

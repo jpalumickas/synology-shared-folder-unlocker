@@ -50,6 +50,7 @@ describe('saveConfig / loadConfig', () => {
           port: 22,
           username: 'admin',
           password: 'secret',
+          hostFingerprint: 'abc123',
           shareFolders: [{ id: 'sf-1', name: 'photos', password: 'enc-pass' }],
         },
       ],
@@ -143,6 +144,7 @@ describe('edge cases', () => {
           port: 22,
           username: 'admin',
           password: 'p@ss\'w"ord!$%^&*()',
+          hostFingerprint: 'abc123',
           shareFolders: [
             { id: 'sf-1', name: 'photos', password: '🔐émojì & ünîcödé' },
           ],
@@ -174,6 +176,7 @@ describe('edge cases', () => {
         port: 22,
         username: 'admin',
         password: `pw-${i}`,
+        hostFingerprint: `fp-${i}`,
         shareFolders: Array.from({ length: 10 }, (_, j) => ({
           id: `sf-${i}-${j}`,
           name: `share-${j}`,
