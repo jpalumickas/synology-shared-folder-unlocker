@@ -6,11 +6,16 @@ import { queryKeys } from './queryKeys'
 export function useUpdateNas() {
   const queryClient = useQueryClient()
 
-  return useMutation({
+  const { mutateAsync, ...rest } = useMutation({
     mutationFn: ({ id, data }: { id: string; data: Partial<NasDevice> }) =>
       apiClient.updateNas(id, data),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.nasList })
     },
   })
+
+  return {
+    updateNas: mutateAsync,
+    ...rest,
+  }
 }

@@ -5,10 +5,15 @@ import { queryKeys } from './queryKeys'
 export function usePollNow() {
   const queryClient = useQueryClient()
 
-  return useMutation({
+  const { mutate, ...rest } = useMutation({
     mutationFn: () => apiClient.pollNow(),
     onSuccess: (result) => {
       queryClient.setQueryData(queryKeys.shareFolderStatuses, result.statuses)
     },
   })
+
+  return {
+    pollNow: mutate,
+    ...rest,
+  }
 }

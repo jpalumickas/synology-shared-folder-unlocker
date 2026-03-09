@@ -6,7 +6,7 @@ import { queryKeys } from './queryKeys'
 export function useAddNas() {
   const queryClient = useQueryClient()
 
-  return useMutation({
+  const { mutateAsync, ...rest } = useMutation({
     mutationFn: (data: Omit<NasDevice, 'id' | 'shareFolders'>) =>
       apiClient.addNas(data),
     onSuccess: () => {
@@ -16,4 +16,9 @@ export function useAddNas() {
       })
     },
   })
+
+  return {
+    addNas: mutateAsync,
+    ...rest,
+  }
 }

@@ -255,18 +255,18 @@ function ShareFolderForm({
 // --- Dashboard Page ---
 
 export function DashboardPage() {
-  const { data: nasList = [], isLoading: nasLoading } = useNasList()
-  const { data: statuses = [] } = useShareFolderStatuses()
-  const { data: settings } = useSettings()
+  const { nasList, isLoading: nasLoading } = useNasList()
+  const { statuses } = useShareFolderStatuses()
+  const { settings } = useSettings()
 
-  const addNas = useAddNas()
-  const updateNas = useUpdateNas()
-  const deleteNas = useDeleteNas()
-  const addShareFolder = useAddShareFolder()
-  const updateShareFolder = useUpdateShareFolder()
-  const deleteShareFolder = useDeleteShareFolder()
-  const unlockShareFolder = useUnlockShareFolder()
-  const pollNow = usePollNow()
+  const { addNas } = useAddNas()
+  const { updateNas } = useUpdateNas()
+  const { deleteNas } = useDeleteNas()
+  const { addShareFolder } = useAddShareFolder()
+  const { updateShareFolder } = useUpdateShareFolder()
+  const { deleteShareFolder } = useDeleteShareFolder()
+  const { unlockShareFolder } = useUnlockShareFolder()
+  const { pollNow, isPending: isPolling } = usePollNow()
 
   // Dialog states
   const [showAddNas, setShowAddNas] = useState(false)
@@ -283,7 +283,7 @@ export function DashboardPage() {
     statuses.find((s) => s.nasId === nasId && s.shareFolderId === shareFolderId)
 
   const handleAddNas = async (data: Omit<NasDevice, 'id' | 'shareFolders'>) => {
-    await addNas.mutateAsync(data)
+    await addNas(data)
     setShowAddNas(false)
   }
 
@@ -294,7 +294,7 @@ export function DashboardPage() {
       return
     }
 
-    await updateNas.mutateAsync({ id: editingNas.id, data })
+    await updateNas({ id: editingNas.id, data })
     setEditingNas(null)
   }
 
@@ -303,7 +303,7 @@ export function DashboardPage() {
       return
     }
 
-    await deleteNas.mutateAsync(id)
+    await deleteNas(id)
   }
 
   const handleAddShareFolder = async (data: {
@@ -314,7 +314,7 @@ export function DashboardPage() {
       return
     }
 
-    await addShareFolder.mutateAsync({ nasId: addShareFolderNasId, data })
+    await addShareFolder({ nasId: addShareFolderNasId, data })
     setAddShareFolderNasId(null)
   }
 
@@ -326,7 +326,7 @@ export function DashboardPage() {
       return
     }
 
-    await updateShareFolder.mutateAsync({
+    await updateShareFolder({
       nasId: editingShareFolder.nasId,
       shareFolderId: editingShareFolder.shareFolder.id,
       data,
@@ -342,7 +342,7 @@ export function DashboardPage() {
       return
     }
 
-    await deleteShareFolder.mutateAsync({ nasId, shareFolderId })
+    await deleteShareFolder({ nasId, shareFolderId })
   }
 
   if (nasLoading) {
@@ -362,14 +362,12 @@ export function DashboardPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={() => pollNow.mutate()}
-          disabled={pollNow.isPending}
+          onClick={() => pollNow()}
+          disabled={isPolling}
         >
-          <RefreshCw
-            className={cn('h-4 w-4', pollNow.isPending && 'animate-spin')}
-          />
+          <RefreshCw className={cn('h-4 w-4', isPolling && 'animate-spin')} />
           <span className="hidden sm:inline">
-            {pollNow.isPending ? 'Checking...' : 'Check Now'}
+            {isPolling ? 'Checking...' : 'Check Now'}
           </span>
         </Button>
       </Navbar>
@@ -486,7 +484,7 @@ export function DashboardPage() {
                                     variant="ghost"
                                     size="xs"
                                     onClick={() =>
-                                      unlockShareFolder.mutate({
+                                      unlockShareFolder({
                                         nasId: nas.id,
                                         shareFolderId: shareFolder.id,
                                       })

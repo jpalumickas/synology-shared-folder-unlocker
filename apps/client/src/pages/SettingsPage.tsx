@@ -16,7 +16,7 @@ import { useSettings, useUpdateSettings, useChangePassword } from '../hooks/api'
 function PollingForm({ initialInterval }: { initialInterval: number }) {
   const [submitError, setSubmitError] = useState('')
   const [saved, setSaved] = useState(false)
-  const updateSettings = useUpdateSettings()
+  const { updateSettings } = useUpdateSettings()
 
   const form = useAppForm({
     defaultValues: {
@@ -31,7 +31,7 @@ function PollingForm({ initialInterval }: { initialInterval: number }) {
       setSubmitError('')
       setSaved(false)
       try {
-        await updateSettings.mutateAsync({
+        await updateSettings({
           pollingInterval: value.interval,
         })
         setSaved(true)
@@ -78,7 +78,7 @@ function PollingForm({ initialInterval }: { initialInterval: number }) {
 function ChangePasswordForm() {
   const [submitError, setSubmitError] = useState('')
   const [saved, setSaved] = useState(false)
-  const changePassword = useChangePassword()
+  const { changePassword } = useChangePassword()
 
   const form = useAppForm({
     defaultValues: {
@@ -104,7 +104,7 @@ function ChangePasswordForm() {
       setSubmitError('')
       setSaved(false)
       try {
-        await changePassword.mutateAsync({
+        await changePassword({
           currentPassword: value.currentPassword,
           newPassword: value.newPassword,
         })
@@ -181,7 +181,7 @@ function ChangePasswordForm() {
 }
 
 export function SettingsPage() {
-  const { data: settings, isLoading } = useSettings()
+  const { settings, isLoading } = useSettings()
 
   return (
     <div className="min-h-screen bg-background">

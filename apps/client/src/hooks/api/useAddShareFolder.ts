@@ -6,7 +6,7 @@ import { queryKeys } from './queryKeys'
 export function useAddShareFolder() {
   const queryClient = useQueryClient()
 
-  return useMutation({
+  const { mutateAsync, ...rest } = useMutation({
     mutationFn: ({
       nasId,
       data,
@@ -21,4 +21,9 @@ export function useAddShareFolder() {
       })
     },
   })
+
+  return {
+    addShareFolder: mutateAsync,
+    ...rest,
+  }
 }

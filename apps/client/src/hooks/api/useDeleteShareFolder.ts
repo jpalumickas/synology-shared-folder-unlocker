@@ -5,7 +5,7 @@ import { queryKeys } from './queryKeys'
 export function useDeleteShareFolder() {
   const queryClient = useQueryClient()
 
-  return useMutation({
+  const { mutateAsync, ...rest } = useMutation({
     mutationFn: ({
       nasId,
       shareFolderId,
@@ -20,4 +20,9 @@ export function useDeleteShareFolder() {
       })
     },
   })
+
+  return {
+    deleteShareFolder: mutateAsync,
+    ...rest,
+  }
 }

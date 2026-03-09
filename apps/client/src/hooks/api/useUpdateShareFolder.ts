@@ -6,7 +6,7 @@ import { queryKeys } from './queryKeys'
 export function useUpdateShareFolder() {
   const queryClient = useQueryClient()
 
-  return useMutation({
+  const { mutateAsync, ...rest } = useMutation({
     mutationFn: ({
       nasId,
       shareFolderId,
@@ -20,4 +20,9 @@ export function useUpdateShareFolder() {
       queryClient.invalidateQueries({ queryKey: queryKeys.nasList })
     },
   })
+
+  return {
+    updateShareFolder: mutateAsync,
+    ...rest,
+  }
 }

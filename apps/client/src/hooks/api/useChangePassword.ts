@@ -2,7 +2,7 @@ import { useMutation } from '@tanstack/react-query'
 import { apiClient } from '../../services/apiClient'
 
 export function useChangePassword() {
-  return useMutation({
+  const { mutateAsync, ...rest } = useMutation({
     mutationFn: ({
       currentPassword,
       newPassword,
@@ -11,4 +11,9 @@ export function useChangePassword() {
       newPassword: string
     }) => apiClient.changePassword(currentPassword, newPassword),
   })
+
+  return {
+    changePassword: mutateAsync,
+    ...rest,
+  }
 }

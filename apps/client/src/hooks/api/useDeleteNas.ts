@@ -5,7 +5,7 @@ import { queryKeys } from './queryKeys'
 export function useDeleteNas() {
   const queryClient = useQueryClient()
 
-  return useMutation({
+  const { mutateAsync, ...rest } = useMutation({
     mutationFn: (id: string) => apiClient.deleteNas(id),
     onSuccess: () => {
       queryClient.invalidateQueries({ queryKey: queryKeys.nasList })
@@ -14,4 +14,9 @@ export function useDeleteNas() {
       })
     },
   })
+
+  return {
+    deleteNas: mutateAsync,
+    ...rest,
+  }
 }

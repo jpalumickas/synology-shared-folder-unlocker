@@ -5,7 +5,7 @@ import { queryKeys } from './queryKeys'
 export function useUnlockShareFolder() {
   const queryClient = useQueryClient()
 
-  return useMutation({
+  const { mutate, ...rest } = useMutation({
     mutationFn: ({
       nasId,
       shareFolderId,
@@ -19,4 +19,9 @@ export function useUnlockShareFolder() {
       })
     },
   })
+
+  return {
+    unlockShareFolder: mutate,
+    ...rest,
+  }
 }
