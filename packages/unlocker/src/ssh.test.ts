@@ -13,6 +13,10 @@ let execResults: ExecResult[] = []
 let capturedCommands: string[] = []
 let shouldFailConnect = false
 let connectError: Error | null = null
+let shouldHangConnect = false
+let shouldExecFail = false
+let execError: Error | null = null
+let capturedStdinData: string[] = []
 
 class MockStream extends EventEmitter {
   stderr = new EventEmitter()
@@ -24,7 +28,9 @@ vi.mock('ssh2', () => {
   return {
     Client: class extends EventEmitter {
       connect() {
-        if (shouldFailConnect) {
+        if (shouldHangConnect) {
+          // Do nothing - simulates a hanging connection for timeout testing
+        } else if (shouldFailConnect) {
           setTimeout(() => this.emit('error', connectError), 0)
         } else {
           setTimeout(() => this.emit('ready'), 0)
@@ -35,13 +41,20 @@ vi.mock('ssh2', () => {
         cb: (err: Error | null, stream: MockStream) => void
       ) {
         capturedCommands.push(command)
+        if (shouldExecFail) {
+          cb(execError!, null as unknown as MockStream)
+          return
+        }
         const stream = new MockStream()
+        stream.write = vi.fn((...args: unknown[]) => {
+          capturedStdinData.push(String(args[0]))
+        })
         const result = execResults.shift() ?? { stdout: '', code: 0 }
         cb(null, stream)
         if (result.stdout) stream.emit('data', Buffer.from(result.stdout))
         if (result.stderr)
           stream.stderr.emit('data', Buffer.from(result.stderr))
-        stream.emit('close', result.code ?? 0)
+        stream.emit('close', 'code' in result ? result.code : 0)
       }
       end = vi.fn()
     },
@@ -71,8 +84,12 @@ beforeEach(async () => {
   vi.resetModules()
   execResults = []
   capturedCommands = []
+  capturedStdinData = []
   shouldFailConnect = false
   connectError = null
+  shouldHangConnect = false
+  shouldExecFail = false
+  execError = null
   const mod = await import('./ssh.js')
   checkShareFolderStatus = mod.checkShareFolderStatus
   unlockShareFolder = mod.unlockShareFolder
@@ -171,5 +188,70 @@ describe('unlockShareFolder', () => {
     expect(capturedCommands[0]).toContain('synoshare --enc_mount')
     expect(capturedCommands[0]).toContain("'photos'")
     expect(capturedCommands[0]).toContain("'enc-pass'")
+  })
+
+  it('returns failure with non-Error throw', async () => {
+    shouldFailConnect = true
+    connectError = 'string error' as unknown as Error
+    const result = await unlockShareFolder(nas, shareFolder)
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('Unknown error')
+  })
+
+  it('escapes share folder password in unlock command', async () => {
+    execResults = [{ code: 0 }]
+    const sf = { ...shareFolder, password: "pass'word" }
+    await unlockShareFolder(nas, sf)
+    expect(capturedCommands[0]).toContain("'pass'\\''word'")
+  })
+})
+
+describe('executeCommand / SSH edge cases', () => {
+  it('rejects with timeout when connection hangs', async () => {
+    vi.useFakeTimers()
+    shouldHangConnect = true
+    const promise = checkShareFolderStatus(nas, shareFolder)
+    await vi.advanceTimersByTimeAsync(15_001)
+    // checkShareFolderStatus catches the error and returns 'error'
+    expect(await promise).toBe('error')
+    vi.useRealTimers()
+  })
+
+  it('rejects when exec returns an error', async () => {
+    shouldExecFail = true
+    execError = new Error('exec failed')
+    expect(await checkShareFolderStatus(nas, shareFolder)).toBe('error')
+  })
+
+  it('unlockShareFolder handles exec error', async () => {
+    shouldExecFail = true
+    execError = new Error('command not found')
+    const result = await unlockShareFolder(nas, shareFolder)
+    expect(result.success).toBe(false)
+    expect(result.message).toBe('command not found')
+  })
+
+  it('sends password via stdin for sudo commands', async () => {
+    execResults = [{ stdout: 'Status: Mounted\n' }]
+    await checkShareFolderStatus(nas, shareFolder)
+    expect(capturedStdinData[0]).toContain('naspass')
+  })
+
+  it('defaults code to 0 when close event passes null', async () => {
+    // The mock always passes a code, so we test the null code path via unlockShareFolder
+    // When code is undefined/null, it should be treated as 0 (success)
+    execResults = [{ stdout: '', code: undefined as unknown as number }]
+    const result = await unlockShareFolder(nas, shareFolder)
+    expect(result.success).toBe(true)
+  })
+
+  it('handles stderr output in checkShareFolderStatus', async () => {
+    execResults = [{ stderr: 'not mounted\n' }]
+    expect(await checkShareFolderStatus(nas, shareFolder)).toBe('locked')
+  })
+
+  it('returns "locked" for "not mounted" (lowercase)', async () => {
+    execResults = [{ stdout: 'Status: not mounted\n' }]
+    expect(await checkShareFolderStatus(nas, shareFolder)).toBe('locked')
   })
 })

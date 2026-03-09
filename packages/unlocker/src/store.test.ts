@@ -237,5 +237,117 @@ describe('Store', () => {
       expect(store.getShareFolderStatuses()).toHaveLength(1)
       expect(store.getShareFolderStatuses()[0].nasId).toBe('nas-2')
     })
+
+    it('setShareFolderStatus overwrites existing entry', () => {
+      const sf: EncryptedShareFolder = {
+        id: 'sf-1',
+        name: 'photos-renamed',
+        password: 'enc1',
+      }
+      store.setShareFolderStatus('nas-1', sf, 'locked')
+      const st = store
+        .getShareFolderStatuses()
+        .find((s) => s.shareFolderId === 'sf-1')
+      expect(st?.shareFolderName).toBe('photos-renamed')
+      expect(st?.status).toBe('locked')
+    })
+
+    it('updateShareFolderStatus clears previous error when status changes', () => {
+      store.updateShareFolderStatus('nas-1', 'sf-1', 'error', 'timeout')
+      store.updateShareFolderStatus('nas-1', 'sf-1', 'unlocked')
+      const st = store
+        .getShareFolderStatuses()
+        .find((s) => s.shareFolderId === 'sf-1')
+      expect(st?.status).toBe('unlocked')
+      expect(st?.error).toBeUndefined()
+    })
+
+    it('removeShareFolderStatus is a no-op for unknown key', () => {
+      store.removeShareFolderStatus('nas-x', 'sf-x')
+      expect(store.getShareFolderStatuses()).toHaveLength(2)
+    })
+
+    it('removeNasStatuses is a no-op for unknown NAS', () => {
+      store.removeNasStatuses('nas-unknown')
+      expect(store.getShareFolderStatuses()).toHaveLength(2)
+    })
+  })
+
+  describe('edge cases', () => {
+    it('unlock with empty nasList creates no statuses', () => {
+      store.unlock({ pollingInterval: 60, nasList: [] }, 'pw')
+      expect(store.getShareFolderStatuses()).toHaveLength(0)
+      expect(store.isUnlocked).toBe(true)
+    })
+
+    it('updateConfig does not affect session or statuses', () => {
+      const token = store.unlock(makeConfig(), 'pw')
+      store.updateShareFolderStatus('nas-1', 'sf-1', 'unlocked')
+      const newConfig = makeConfig({ pollingInterval: 30 })
+      store.updateConfig(newConfig)
+
+      expect(store.isSessionValid(token)).toBe(true)
+      expect(store.getMasterPassword()).toBe('pw')
+      const st = store
+        .getShareFolderStatuses()
+        .find((s) => s.shareFolderId === 'sf-1')
+      expect(st?.status).toBe('unlocked')
+    })
+
+    it('multiple NAS devices with multiple share folders', () => {
+      const config = makeConfig({
+        nasList: [
+          {
+            id: 'nas-1',
+            name: 'NAS One',
+            host: '192.168.1.1',
+            port: 22,
+            username: 'admin',
+            password: 'pw',
+            shareFolders: [{ id: 'sf-1', name: 'photos', password: 'enc1' }],
+          },
+          {
+            id: 'nas-2',
+            name: 'NAS Two',
+            host: '192.168.1.2',
+            port: 22,
+            username: 'admin',
+            password: 'pw2',
+            shareFolders: [
+              { id: 'sf-3', name: 'music', password: 'enc3' },
+              { id: 'sf-4', name: 'videos', password: 'enc4' },
+            ],
+          },
+        ],
+      })
+      store.unlock(config, 'pw')
+      expect(store.getShareFolderStatuses()).toHaveLength(3)
+
+      store.removeNasStatuses('nas-1')
+      expect(store.getShareFolderStatuses()).toHaveLength(2)
+      expect(
+        store.getShareFolderStatuses().every((s) => s.nasId === 'nas-2')
+      ).toBe(true)
+    })
+
+    it('lockUI then unlock generates new session', () => {
+      const token1 = store.unlock(makeConfig(), 'pw')
+      store.lockUI()
+      const token2 = store.unlock(makeConfig(), 'pw')
+      expect(token1).not.toBe(token2)
+      expect(store.isSessionValid(token1)).toBe(false)
+      expect(store.isSessionValid(token2)).toBe(true)
+    })
+
+    it('reset then unlock starts fresh', () => {
+      store.unlock(makeConfig(), 'pw')
+      store.updateShareFolderStatus('nas-1', 'sf-1', 'unlocked')
+      store.reset()
+      store.unlock(makeConfig(), 'newpw')
+
+      expect(store.getMasterPassword()).toBe('newpw')
+      const statuses = store.getShareFolderStatuses()
+      expect(statuses.every((s) => s.status === 'unknown')).toBe(true)
+    })
   })
 })

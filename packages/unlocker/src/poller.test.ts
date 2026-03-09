@@ -129,6 +129,17 @@ describe('pollOnce', () => {
     expect(statuses[0].error).toBe('SSH failed')
   })
 
+  it('sets "Unknown error" when check throws a non-Error', async () => {
+    store.unlock(config, 'pw')
+    mockCheckShareFolderStatus.mockRejectedValue('string error')
+
+    await pollOnce()
+
+    const statuses = store.getShareFolderStatuses()
+    expect(statuses.every((s) => s.status === 'error')).toBe(true)
+    expect(statuses[0].error).toBe('Unknown error')
+  })
+
   it('updates status to error when check returns error', async () => {
     store.unlock(config, 'pw')
     mockCheckShareFolderStatus.mockResolvedValue('error')
@@ -211,5 +222,46 @@ describe('startPoller / stopPoller / restartPoller', () => {
     // Advance 30s - should fire
     await vi.advanceTimersByTimeAsync(30_000)
     expect(mockCheckShareFolderStatus).toHaveBeenCalledTimes(2)
+  })
+
+  it('defaults to 120s interval when pollingInterval is 0', async () => {
+    const zeroConfig: AppConfig = { ...config, pollingInterval: 0 }
+    store.unlock(zeroConfig, 'pw')
+    mockCheckShareFolderStatus.mockResolvedValue('unlocked')
+
+    startPoller()
+    await vi.advanceTimersByTimeAsync(0)
+    mockCheckShareFolderStatus.mockClear()
+
+    // Advance 60s - should NOT fire yet (120s default)
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(mockCheckShareFolderStatus).not.toHaveBeenCalled()
+
+    // Advance another 60s (total 120s) - should fire
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(mockCheckShareFolderStatus).toHaveBeenCalledTimes(2)
+  })
+
+  it('stopPoller is a no-op when not running', () => {
+    // Should not throw
+    stopPoller()
+  })
+
+  it('calling startPoller twice stops the previous interval', async () => {
+    store.unlock(config, 'pw')
+    mockCheckShareFolderStatus.mockResolvedValue('unlocked')
+
+    startPoller()
+    await vi.advanceTimersByTimeAsync(0)
+    mockCheckShareFolderStatus.mockClear()
+
+    // Start again - should stop previous, start new
+    startPoller()
+    await vi.advanceTimersByTimeAsync(0)
+    mockCheckShareFolderStatus.mockClear()
+
+    // Advance one interval - should only fire once (not twice from two intervals)
+    await vi.advanceTimersByTimeAsync(60_000)
+    expect(mockCheckShareFolderStatus).toHaveBeenCalledTimes(2) // 2 share folders, 1 poll
   })
 })
