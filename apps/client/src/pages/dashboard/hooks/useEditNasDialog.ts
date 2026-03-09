@@ -1,9 +1,9 @@
 import { create } from 'zustand'
-import type { NasDevice } from '@synology-shared-folder-unlocker/config'
+import type { NasDeviceInfo } from '../../../types/apiClient'
 
 interface EditNasDialogState {
-  nas: NasDevice | null
-  open: (nas: NasDevice) => void
+  nas: NasDeviceInfo | null
+  open: (nas: NasDeviceInfo) => void
   close: () => void
 }
 

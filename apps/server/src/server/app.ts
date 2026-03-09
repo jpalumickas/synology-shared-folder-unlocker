@@ -22,6 +22,12 @@ import {
   type EncryptedShareFolder,
 } from '@synology-shared-folder-unlocker/config'
 
+function stripPassword(nas: NasDevice): Omit<NasDevice, 'password'> {
+  const { password, ...rest } = nas
+  void password
+  return rest
+}
+
 const app = new Hono()
 const api = new Hono()
 
@@ -127,7 +133,7 @@ api.post('/share-folders/poll', requireUnlocked, async (c) => {
 
 api.get('/nas', requireSession, (c) => {
   const config = store.requireConfig()
-  return c.json(config.nasList)
+  return c.json(config.nasList.map(stripPassword))
 })
 
 api.post('/nas', requireSession, async (c) => {
@@ -162,7 +168,7 @@ api.post('/nas', requireSession, async (c) => {
   store.updateConfig(config)
   await saveConfig(config, password)
 
-  return c.json(nas, 201)
+  return c.json(stripPassword(nas), 201)
 })
 
 api.put('/nas/:id', requireSession, async (c) => {
@@ -209,7 +215,7 @@ api.put('/nas/:id', requireSession, async (c) => {
   store.updateConfig(config)
   await saveConfig(config, password)
 
-  return c.json(nas)
+  return c.json(stripPassword(nas))
 })
 
 api.delete('/nas/:id', requireSession, async (c) => {

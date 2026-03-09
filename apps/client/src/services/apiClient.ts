@@ -1,9 +1,11 @@
-import type {
-  NasDevice,
-  EncryptedShareFolder,
-} from '@synology-shared-folder-unlocker/config'
+import type { EncryptedShareFolder } from '@synology-shared-folder-unlocker/config'
 import type { ShareFolderStatus } from '@synology-shared-folder-unlocker/unlocker'
-import type { AddNasParams, AppStatus } from '../types/apiClient'
+import type {
+  AddNasParams,
+  AppStatus,
+  NasDeviceInfo,
+  UpdateNasCredentials,
+} from '../types/apiClient'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -40,16 +42,22 @@ export const apiClient = {
 
   logout: () => request<{ success: boolean }>('/logout', { method: 'POST' }),
 
-  getNasList: () => request<NasDevice[]>('/nas'),
+  getNasList: () => request<NasDeviceInfo[]>('/nas'),
 
   addNas: (data: AddNasParams) =>
-    request<NasDevice>('/nas', {
+    request<NasDeviceInfo>('/nas', {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  updateNas: (id: string, data: Partial<NasDevice>) =>
-    request<NasDevice>(`/nas/${id}`, {
+  updateNas: (id: string, data: Partial<NasDeviceInfo>) =>
+    request<NasDeviceInfo>(`/nas/${id}`, {
+      method: 'PUT',
+      body: JSON.stringify(data),
+    }),
+
+  updateNasCredentials: (id: string, data: UpdateNasCredentials) =>
+    request<NasDeviceInfo>(`/nas/${id}`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),

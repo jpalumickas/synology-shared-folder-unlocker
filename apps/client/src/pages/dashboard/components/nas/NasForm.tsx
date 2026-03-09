@@ -1,8 +1,7 @@
 import { useState } from 'react'
 import { z } from 'zod'
 import { Button } from '@synology-shared-folder-unlocker/theme'
-import type { NasDevice } from '@synology-shared-folder-unlocker/config'
-import type { AddNasParams } from '../../../../types/apiClient'
+import type { AddNasParams, NasDeviceInfo } from '../../../../types/apiClient'
 import { useAppForm } from '../../../../hooks/form/useForm'
 
 export function NasForm({
@@ -10,11 +9,12 @@ export function NasForm({
   onSubmit,
   onCancel,
 }: {
-  initial?: NasDevice
+  initial?: NasDeviceInfo
   onSubmit: (data: AddNasParams) => Promise<void>
   onCancel: () => void
 }) {
   const [submitError, setSubmitError] = useState('')
+  const isEditing = !!initial
 
   const form = useAppForm({
     defaultValues: {
@@ -22,15 +22,17 @@ export function NasForm({
       host: initial?.host ?? '',
       port: initial?.port ?? 22,
       username: initial?.username ?? '',
-      password: initial?.password ?? '',
+      password: '',
     },
     validators: {
       onSubmit: z.object({
         name: z.string().min(1, 'Name is required'),
         host: z.string().min(1, 'Host is required'),
         port: z.number().min(1, 'Invalid port').max(65535, 'Invalid port'),
-        username: z.string().min(1, 'Username is required'),
-        password: initial
+        username: isEditing
+          ? z.string()
+          : z.string().min(1, 'Username is required'),
+        password: isEditing
           ? z.string()
           : z.string().min(1, 'Password is required'),
       }),
@@ -80,25 +82,29 @@ export function NasForm({
         </p>
       )}
 
-      <form.AppField name="username">
-        {(field) => (
-          <field.TextField
-            label="Username"
-            placeholder="admin"
-            disablePasswordManager
-          />
-        )}
-      </form.AppField>
+      {!isEditing && (
+        <>
+          <form.AppField name="username">
+            {(field) => (
+              <field.TextField
+                label="Username"
+                placeholder="admin"
+                disablePasswordManager
+              />
+            )}
+          </form.AppField>
 
-      <form.AppField name="password">
-        {(field) => (
-          <field.TextField
-            label="SSH Password"
-            type="password"
-            disablePasswordManager
-          />
-        )}
-      </form.AppField>
+          <form.AppField name="password">
+            {(field) => (
+              <field.TextField
+                label="SSH Password"
+                type="password"
+                disablePasswordManager
+              />
+            )}
+          </form.AppField>
+        </>
+      )}
 
       {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 

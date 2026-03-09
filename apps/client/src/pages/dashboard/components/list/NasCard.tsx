@@ -18,19 +18,22 @@ import {
 import {
   EllipsisVertical,
   FolderLock,
+  KeyRound,
   Pencil,
   Server,
   Trash2,
 } from 'lucide-react'
-import type { NasDevice } from '@synology-shared-folder-unlocker/config'
+import type { NasDeviceInfo } from '../../../../types/apiClient'
 import { useDeleteNas } from '../../../../hooks/api'
 import { useEditNasDialog } from '../../hooks/useEditNasDialog'
+import { useUpdateCredentialsDialog } from '../../hooks/useUpdateCredentialsDialog'
 import { useAddShareFolderDialog } from '../../hooks/useAddShareFolderDialog'
 import { ShareFolderRow } from './ShareFolderRow'
 
-export function NasCard({ nas }: { nas: NasDevice }) {
+export function NasCard({ nas }: { nas: NasDeviceInfo }) {
   const { deleteNas } = useDeleteNas()
   const openEditNas = useEditNasDialog((s) => s.open)
+  const openUpdateCredentials = useUpdateCredentialsDialog((s) => s.open)
   const openAddShareFolder = useAddShareFolderDialog((s) => s.open)
   const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
@@ -68,6 +71,10 @@ export function NasCard({ nas }: { nas: NasDevice }) {
                 <DropdownMenuItem onClick={() => openEditNas(nas)}>
                   <Pencil className="h-3.5 w-3.5" />
                   Edit
+                </DropdownMenuItem>
+                <DropdownMenuItem onClick={() => openUpdateCredentials(nas)}>
+                  <KeyRound className="h-3.5 w-3.5" />
+                  Update Credentials
                 </DropdownMenuItem>
                 <DropdownMenuSeparator />
                 <DropdownMenuItem

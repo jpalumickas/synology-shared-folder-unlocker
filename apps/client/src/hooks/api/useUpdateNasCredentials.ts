@@ -1,26 +1,26 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { NasDeviceInfo } from '../../types/apiClient'
+import type { UpdateNasCredentials } from '../../types/apiClient'
 import { toast } from '@synology-shared-folder-unlocker/theme'
 import { apiClient } from '../../services/apiClient'
 import { queryKeys } from './queryKeys'
 
-export function useUpdateNas() {
+export function useUpdateNasCredentials() {
   const queryClient = useQueryClient()
 
   const { mutateAsync, ...rest } = useMutation({
-    mutationFn: ({ id, data }: { id: string; data: Partial<NasDeviceInfo> }) =>
-      apiClient.updateNas(id, data),
+    mutationFn: ({ id, data }: { id: string; data: UpdateNasCredentials }) =>
+      apiClient.updateNasCredentials(id, data),
     onSuccess: () => {
-      toast.success('NAS device updated')
+      toast.success('Credentials updated')
       queryClient.invalidateQueries({ queryKey: queryKeys.nasList })
     },
     onError: () => {
-      toast.error('Failed to update NAS device')
+      toast.error('Failed to update credentials')
     },
   })
 
   return {
-    updateNas: mutateAsync,
+    updateNasCredentials: mutateAsync,
     ...rest,
   }
 }

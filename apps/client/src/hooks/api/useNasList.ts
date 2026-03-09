@@ -1,9 +1,9 @@
 import { useQuery } from '@tanstack/react-query'
-import type { NasDevice } from '@synology-shared-folder-unlocker/config'
+import type { NasDeviceInfo } from '../../types/apiClient'
 import { apiClient } from '../../services/apiClient'
 import { queryKeys } from './queryKeys'
 
-const EMPTY_NAS_LIST: NasDevice[] = []
+const EMPTY_NAS_LIST: NasDeviceInfo[] = []
 
 export function useNasList() {
   const { data, ...rest } = useQuery({

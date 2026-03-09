@@ -30,7 +30,8 @@ export function EditNasDialog() {
           <NasForm
             initial={nas}
             onSubmit={async (data) => {
-              await updateNas({ id: nas.id, data })
+              const { name, host, port } = data
+              await updateNas({ id: nas.id, data: { name, host, port } })
               close()
             }}
             onCancel={close}

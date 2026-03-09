@@ -4,6 +4,7 @@ import { PollingStatus } from './components/PollingStatus'
 import { NasList } from './components/list/NasList'
 import { AddNasDialog } from './components/nas/AddNasDialog'
 import { EditNasDialog } from './components/nas/EditNasDialog'
+import { UpdateCredentialsDialog } from './components/nas/UpdateCredentialsDialog'
 import { AddShareFolderDialog } from './components/share-folder/AddShareFolderDialog'
 import { EditShareFolderDialog } from './components/share-folder/EditShareFolderDialog'
 
@@ -22,6 +23,7 @@ export function DashboardPage() {
 
       <AddNasDialog />
       <EditNasDialog />
+      <UpdateCredentialsDialog />
       <AddShareFolderDialog />
       <EditShareFolderDialog />
     </div>
