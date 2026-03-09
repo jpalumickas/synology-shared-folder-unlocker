@@ -57,7 +57,7 @@ export const apiClient = {
     }),
 
   updateNasCredentials: (id: string, data: UpdateNasCredentials) =>
-    request<NasDeviceInfo>(`/nas/${id}`, {
+    request<NasDeviceInfo>(`/nas/${id}/credentials`, {
       method: 'PUT',
       body: JSON.stringify(data),
     }),

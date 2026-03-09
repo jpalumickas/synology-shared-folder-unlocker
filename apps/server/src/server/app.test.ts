@@ -136,8 +136,25 @@ describe('NAS API password stripping', () => {
       expect(body).toHaveProperty('name', 'Renamed NAS')
     })
 
-    it('does not include password when updating credentials', async () => {
+    it('does not accept username or password fields', async () => {
       const { status, body } = await apiRequest('/nas/nas-1', {
+        method: 'PUT',
+        body: JSON.stringify({
+          name: 'Updated',
+          username: 'hacker',
+          password: 'evil',
+        }),
+      })
+
+      expect(status).toBe(200)
+      expect(body).toHaveProperty('name', 'Updated')
+      expect(body).toHaveProperty('username', 'admin')
+    })
+  })
+
+  describe('PUT /api/nas/:id/credentials', () => {
+    it('updates username and password', async () => {
+      const { status, body } = await apiRequest('/nas/nas-1/credentials', {
         method: 'PUT',
         body: JSON.stringify({
           username: 'newuser',
@@ -148,6 +165,18 @@ describe('NAS API password stripping', () => {
       expect(status).toBe(200)
       expect(body).not.toHaveProperty('password')
       expect(body).toHaveProperty('username', 'newuser')
+    })
+
+    it('returns 404 for unknown NAS', async () => {
+      const { status } = await apiRequest('/nas/unknown/credentials', {
+        method: 'PUT',
+        body: JSON.stringify({
+          username: 'user',
+          password: 'pass',
+        }),
+      })
+
+      expect(status).toBe(404)
     })
   })
 })

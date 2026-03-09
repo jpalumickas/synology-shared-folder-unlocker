@@ -173,7 +173,8 @@ api.post('/nas', requireSession, async (c) => {
 
 api.put('/nas/:id', requireSession, async (c) => {
   const { id } = c.req.param()
-  const body = await c.req.json<Partial<NasDevice>>()
+  const body =
+    await c.req.json<Partial<Pick<NasDevice, 'name' | 'host' | 'port'>>>()
   const config = store.requireConfig()
   const password = store.requireMasterPassword()
 
@@ -194,14 +195,6 @@ api.put('/nas/:id', requireSession, async (c) => {
     nas.port = body.port
   }
 
-  if (body.username !== undefined) {
-    nas.username = body.username
-  }
-
-  if (body.password !== undefined) {
-    nas.password = body.password
-  }
-
   const hostChanged = body.host !== undefined || body.port !== undefined
 
   if (hostChanged) {
@@ -214,6 +207,26 @@ api.put('/nas/:id', requireSession, async (c) => {
 
   store.updateConfig(config)
   await saveConfig(config, password)
+
+  return c.json(stripPassword(nas))
+})
+
+api.put('/nas/:id/credentials', requireSession, async (c) => {
+  const { id } = c.req.param()
+  const body = await c.req.json<{ username: string; password: string }>()
+  const config = store.requireConfig()
+  const masterPassword = store.requireMasterPassword()
+
+  const nas = config.nasList.find((n) => n.id === id)
+  if (!nas) {
+    return c.json({ error: 'NAS not found' }, 404)
+  }
+
+  nas.username = body.username
+  nas.password = body.password
+
+  store.updateConfig(config)
+  await saveConfig(config, masterPassword)
 
   return c.json(stripPassword(nas))
 })
