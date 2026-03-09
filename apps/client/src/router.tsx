@@ -7,9 +7,9 @@ import {
 } from '@tanstack/react-router'
 import { apiClient } from './services/apiClient'
 import { DashboardPage } from './pages/dashboard/DashboardPage'
-import { InitPage } from './pages/InitPage'
-import { UnlockPage } from './pages/UnlockPage'
-import { SettingsPage } from './pages/SettingsPage'
+import { InitPage } from './pages/init/InitPage'
+import { UnlockPage } from './pages/unlock/UnlockPage'
+import { SettingsPage } from './pages/settings/SettingsPage'
 
 const rootRoute = createRootRoute({
   beforeLoad: async () => {
