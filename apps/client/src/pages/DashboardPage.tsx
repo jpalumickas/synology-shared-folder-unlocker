@@ -26,6 +26,7 @@ import {
   Trash2,
   Unlock,
 } from 'lucide-react'
+import { useRouter, useNavigate } from '@tanstack/react-router'
 import { api } from '../lib/api'
 import { useAppForm } from '../hooks/form/useForm'
 import type {
@@ -243,13 +244,9 @@ function ShareFolderForm({
 
 // --- Dashboard Page ---
 
-export function DashboardPage({
-  onLogout,
-  onSettings,
-}: {
-  onLogout: () => void
-  onSettings: () => void
-}) {
+export function DashboardPage() {
+  const router = useRouter()
+  const navigate = useNavigate()
   const [nasList, setNasList] = useState<NasDevice[]>([])
   const [statuses, setStatuses] = useState<ShareFolderStatus[]>([])
   const [pollingInterval, setPollingInterval] = useState(120)
@@ -306,7 +303,8 @@ export function DashboardPage({
 
   const handleLogout = async () => {
     await api.logout()
-    onLogout()
+    await router.invalidate()
+    await navigate({ to: '/' })
   }
 
   const handlePollNow = async () => {
@@ -422,7 +420,11 @@ export function DashboardPage({
               <RefreshCw className={cn('h-4 w-4', polling && 'animate-spin')} />
               {polling ? 'Checking...' : 'Check Now'}
             </Button>
-            <Button variant="outline" size="sm" onClick={onSettings}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => navigate({ to: '/settings' })}
+            >
               <Settings className="h-4 w-4" />
               Settings
             </Button>

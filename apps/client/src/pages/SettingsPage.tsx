@@ -10,6 +10,7 @@ import {
   Separator,
 } from '@synology-shared-folder-unlocker/theme'
 import { ArrowLeft, Clock, Shield } from 'lucide-react'
+import { useNavigate } from '@tanstack/react-router'
 import { api } from '../lib/api'
 import { useAppForm } from '../hooks/form/useForm'
 
@@ -173,7 +174,8 @@ function ChangePasswordForm() {
   )
 }
 
-export function SettingsPage({ onBack }: { onBack: () => void }) {
+export function SettingsPage() {
+  const navigate = useNavigate()
   const [pollingInterval, setPollingInterval] = useState<number | null>(null)
 
   useEffect(() => {
@@ -184,7 +186,11 @@ export function SettingsPage({ onBack }: { onBack: () => void }) {
     <div className="min-h-screen bg-background">
       <header className="border-b bg-card">
         <div className="max-w-2xl mx-auto px-4 py-4 flex items-center gap-3">
-          <Button variant="ghost" size="icon-sm" onClick={onBack}>
+          <Button
+            variant="ghost"
+            size="icon-sm"
+            onClick={() => navigate({ to: '/' })}
+          >
             <ArrowLeft className="h-4 w-4" />
           </Button>
           <h1 className="text-lg font-semibold">Settings</h1>

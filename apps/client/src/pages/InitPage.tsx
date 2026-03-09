@@ -8,10 +8,13 @@ import {
   CardTitle,
 } from '@synology-shared-folder-unlocker/theme'
 import { Shield } from 'lucide-react'
+import { useRouter, useNavigate } from '@tanstack/react-router'
 import { api } from '../lib/api'
 import { useAppForm } from '../hooks/form/useForm'
 
-export function InitPage({ onComplete }: { onComplete: () => void }) {
+export function InitPage() {
+  const router = useRouter()
+  const navigate = useNavigate()
   const [submitError, setSubmitError] = useState('')
 
   const form = useAppForm({
@@ -34,7 +37,8 @@ export function InitPage({ onComplete }: { onComplete: () => void }) {
       setSubmitError('')
       try {
         await api.init(value.password)
-        onComplete()
+        await router.invalidate()
+        await navigate({ to: '/' })
       } catch (err) {
         setSubmitError(
           err instanceof Error ? err.message : 'Failed to initialize'

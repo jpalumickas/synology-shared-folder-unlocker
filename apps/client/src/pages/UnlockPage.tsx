@@ -1,7 +1,6 @@
 import { useState } from 'react'
 import { z } from 'zod'
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
@@ -9,10 +8,13 @@ import {
   CardTitle,
 } from '@synology-shared-folder-unlocker/theme'
 import { LockKeyhole } from 'lucide-react'
+import { useRouter, useNavigate } from '@tanstack/react-router'
 import { api } from '../lib/api'
 import { useAppForm } from '../hooks/form/useForm'
 
-export function UnlockPage({ onComplete }: { onComplete: () => void }) {
+export function UnlockPage() {
+  const router = useRouter()
+  const navigate = useNavigate()
   const [submitError, setSubmitError] = useState('')
 
   const form = useAppForm({
@@ -28,7 +30,8 @@ export function UnlockPage({ onComplete }: { onComplete: () => void }) {
       setSubmitError('')
       try {
         await api.unlock(value.password)
-        onComplete()
+        await router.invalidate()
+        await navigate({ to: '/' })
       } catch (err) {
         setSubmitError(err instanceof Error ? err.message : 'Failed to unlock')
       }
