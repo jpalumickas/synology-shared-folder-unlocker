@@ -131,7 +131,10 @@ api.get('/nas', requireSession, (c) => {
 })
 
 api.post('/nas', requireSession, async (c) => {
-  const body = await c.req.json<Omit<NasDevice, 'id' | 'shareFolders'>>()
+  const body =
+    await c.req.json<
+      Omit<NasDevice, 'id' | 'shareFolders' | 'hostFingerprint'>
+    >()
   const config = store.requireConfig()
   const password = store.requireMasterPassword()
 

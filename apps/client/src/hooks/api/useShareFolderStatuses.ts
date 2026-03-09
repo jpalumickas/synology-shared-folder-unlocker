@@ -1,5 +1,5 @@
 import { useQuery } from '@tanstack/react-query'
-import type { ShareFolderStatus } from '@synology-shared-folder-unlocker/config'
+import type { ShareFolderStatus } from '@synology-shared-folder-unlocker/unlocker'
 import { apiClient } from '../../services/apiClient'
 import { queryKeys } from './queryKeys'
 

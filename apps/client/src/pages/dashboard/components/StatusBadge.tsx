@@ -1,5 +1,5 @@
 import { Badge, cn } from '@synology-shared-folder-unlocker/theme'
-import type { ShareFolderStatus } from '@synology-shared-folder-unlocker/config'
+import type { ShareFolderStatus } from '@synology-shared-folder-unlocker/unlocker'
 
 export function StatusBadge({
   status,

@@ -1,9 +1,9 @@
 import type {
   NasDevice,
   EncryptedShareFolder,
-  ShareFolderStatus,
-  AppStatus,
 } from '@synology-shared-folder-unlocker/config'
+import type { ShareFolderStatus } from '@synology-shared-folder-unlocker/unlocker'
+import type { AddNasParams, AppStatus } from '../types/apiClient'
 
 async function request<T>(path: string, options?: RequestInit): Promise<T> {
   const res = await fetch(`/api${path}`, {
@@ -42,7 +42,7 @@ export const apiClient = {
 
   getNasList: () => request<NasDevice[]>('/nas'),
 
-  addNas: (data: Omit<NasDevice, 'id' | 'shareFolders' | 'hostFingerprint'>) =>
+  addNas: (data: AddNasParams) =>
     request<NasDevice>('/nas', {
       method: 'POST',
       body: JSON.stringify(data),

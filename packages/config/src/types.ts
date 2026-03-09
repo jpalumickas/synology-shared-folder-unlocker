@@ -9,11 +9,6 @@ export interface NasDevice {
   shareFolders: EncryptedShareFolder[]
 }
 
-export type AddNasParams = Omit<
-  NasDevice,
-  'id' | 'shareFolders' | 'hostFingerprint'
->
-
 export interface EncryptedShareFolder {
   id: string
   name: string
@@ -23,19 +18,4 @@ export interface EncryptedShareFolder {
 export interface AppConfig {
   pollingInterval: number
   nasList: NasDevice[]
-}
-
-export interface ShareFolderStatus {
-  nasId: string
-  shareFolderId: string
-  shareFolderName: string
-  status: 'unknown' | 'locked' | 'unlocked' | 'error'
-  lastChecked: string | null
-  error?: string
-}
-
-export interface AppStatus {
-  initialized: boolean
-  unlocked: boolean
-  sessionValid: boolean
 }

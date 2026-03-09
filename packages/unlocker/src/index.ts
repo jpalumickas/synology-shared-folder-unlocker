@@ -1,3 +1,4 @@
+export type { ShareFolderStatus } from './types.ts'
 export { store } from './store.ts'
 export {
   checkShareFolderStatus,

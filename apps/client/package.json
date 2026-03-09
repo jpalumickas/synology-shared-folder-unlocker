@@ -23,6 +23,7 @@
     "zustand": "^5.0.11"
   },
   "devDependencies": {
+    "@synology-shared-folder-unlocker/unlocker": "workspace:*",
     "@types/react": "^19.0.0",
     "@types/react-dom": "^19.0.0",
     "@vitejs/plugin-react": "^5.1.4",

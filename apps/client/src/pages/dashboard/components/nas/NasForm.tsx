@@ -2,6 +2,7 @@ import { useState } from 'react'
 import { z } from 'zod'
 import { Button } from '@synology-shared-folder-unlocker/theme'
 import type { NasDevice } from '@synology-shared-folder-unlocker/config'
+import type { AddNasParams } from '../../../../types/apiClient'
 import { useAppForm } from '../../../../hooks/form/useForm'
 
 export function NasForm({
@@ -10,9 +11,7 @@ export function NasForm({
   onCancel,
 }: {
   initial?: NasDevice
-  onSubmit: (
-    data: Omit<NasDevice, 'id' | 'shareFolders' | 'hostFingerprint'>
-  ) => Promise<void>
+  onSubmit: (data: AddNasParams) => Promise<void>
   onCancel: () => void
 }) {
   const [submitError, setSubmitError] = useState('')
