@@ -6,7 +6,7 @@ import {
   Outlet,
 } from '@tanstack/react-router'
 import { apiClient } from './services/apiClient'
-import { DashboardPage } from './pages/DashboardPage'
+import { DashboardPage } from './pages/dashboard/DashboardPage'
 import { InitPage } from './pages/InitPage'
 import { UnlockPage } from './pages/UnlockPage'
 import { SettingsPage } from './pages/SettingsPage'
