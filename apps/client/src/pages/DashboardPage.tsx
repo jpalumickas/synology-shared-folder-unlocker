@@ -12,7 +12,6 @@ import {
   DialogContent,
   DialogHeader,
   DialogTitle,
-  Input,
   Separator,
   cn,
 } from '@synology-shared-folder-unlocker/theme'
@@ -28,8 +27,7 @@ import {
   Unlock,
 } from 'lucide-react'
 import { api } from '../lib/api'
-import { useAppForm, getFieldError } from '../hooks/form/useForm'
-import { FormWrapper } from '../components/FormWrapper'
+import { useAppForm } from '../hooks/form/useForm'
 import type {
   NasDevice,
   ShareFolderStatus,
@@ -116,74 +114,39 @@ function NasForm({
       autoComplete="off"
       className="space-y-4"
     >
-      <form.Field name="name">
-        {(field) => (
-          <FormWrapper label="Name" error={getFieldError(field)}>
-            <Input
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-              placeholder="My NAS"
-            />
-          </FormWrapper>
-        )}
-      </form.Field>
+      <form.AppField name="name">
+        {(field) => <field.TextField label="Name" placeholder="My NAS" />}
+      </form.AppField>
 
-      <form.Field name="host">
+      <form.AppField name="host">
         {(field) => (
-          <FormWrapper label="Host" error={getFieldError(field)}>
-            <Input
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-              placeholder="192.168.1.100"
-            />
-          </FormWrapper>
+          <field.TextField label="Host" placeholder="192.168.1.100" />
         )}
-      </form.Field>
+      </form.AppField>
 
-      <form.Field name="port">
-        {(field) => (
-          <FormWrapper label="SSH Port" error={getFieldError(field)}>
-            <Input
-              type="number"
-              value={field.state.value}
-              onChange={(e) => field.handleChange(Number(e.target.value))}
-              onBlur={field.handleBlur}
-            />
-          </FormWrapper>
-        )}
-      </form.Field>
+      <form.AppField name="port">
+        {(field) => <field.NumberField label="SSH Port" />}
+      </form.AppField>
 
-      <form.Field name="username">
+      <form.AppField name="username">
         {(field) => (
-          <FormWrapper label="Username" error={getFieldError(field)}>
-            <Input
-              autoComplete="off"
-              data-1p-ignore
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-              placeholder="admin"
-            />
-          </FormWrapper>
+          <field.TextField
+            label="Username"
+            placeholder="admin"
+            disablePasswordManager
+          />
         )}
-      </form.Field>
+      </form.AppField>
 
-      <form.Field name="password">
+      <form.AppField name="password">
         {(field) => (
-          <FormWrapper label="SSH Password" error={getFieldError(field)}>
-            <Input
-              type="password"
-              autoComplete="off"
-              data-1p-ignore
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-            />
-          </FormWrapper>
+          <field.TextField
+            label="SSH Password"
+            type="password"
+            disablePasswordManager
+          />
         )}
-      </form.Field>
+      </form.AppField>
 
       {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
@@ -191,13 +154,9 @@ function NasForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <form.Subscribe selector={(state) => state.isSubmitting}>
-          {(isSubmitting) => (
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          )}
-        </form.Subscribe>
+        <form.AppForm>
+          <form.SubmitButton label="Save" submittingLabel="Saving..." />
+        </form.AppForm>
       </div>
     </form>
   )
@@ -248,37 +207,25 @@ function ShareFolderForm({
       autoComplete="off"
       className="space-y-4"
     >
-      <form.Field name="name">
+      <form.AppField name="name">
         {(field) => (
-          <FormWrapper
+          <field.TextField
             label="Share Folder Name"
-            error={getFieldError(field)}
+            placeholder="photos"
             description="The encrypted shared folder name on the Synology NAS"
-          >
-            <Input
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-              placeholder="photos"
-            />
-          </FormWrapper>
+          />
         )}
-      </form.Field>
+      </form.AppField>
 
-      <form.Field name="password">
+      <form.AppField name="password">
         {(field) => (
-          <FormWrapper label="Encryption Password" error={getFieldError(field)}>
-            <Input
-              type="password"
-              autoComplete="off"
-              data-1p-ignore
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-            />
-          </FormWrapper>
+          <field.TextField
+            label="Encryption Password"
+            type="password"
+            disablePasswordManager
+          />
         )}
-      </form.Field>
+      </form.AppField>
 
       {submitError && <p className="text-sm text-destructive">{submitError}</p>}
 
@@ -286,13 +233,9 @@ function ShareFolderForm({
         <Button type="button" variant="outline" onClick={onCancel}>
           Cancel
         </Button>
-        <form.Subscribe selector={(state) => state.isSubmitting}>
-          {(isSubmitting) => (
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          )}
-        </form.Subscribe>
+        <form.AppForm>
+          <form.SubmitButton label="Save" submittingLabel="Saving..." />
+        </form.AppForm>
       </div>
     </form>
   )

@@ -7,12 +7,10 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  Input,
 } from '@synology-shared-folder-unlocker/theme'
 import { LockKeyhole } from 'lucide-react'
 import { api } from '../lib/api'
-import { useAppForm, getFieldError } from '../hooks/form/useForm'
-import { FormWrapper } from '../components/FormWrapper'
+import { useAppForm } from '../hooks/form/useForm'
 
 export function UnlockPage({ onComplete }: { onComplete: () => void }) {
   const [submitError, setSubmitError] = useState('')
@@ -61,38 +59,27 @@ export function UnlockPage({ onComplete }: { onComplete: () => void }) {
             }}
             className="space-y-4"
           >
-            <form.Field name="password">
+            <form.AppField name="password">
               {(field) => (
-                <FormWrapper
+                <field.TextField
                   label="Master Password"
-                  error={getFieldError(field)}
-                >
-                  <Input
-                    type="password"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    autoFocus
-                  />
-                </FormWrapper>
+                  type="password"
+                  autoFocus
+                />
               )}
-            </form.Field>
+            </form.AppField>
 
             {submitError && (
               <p className="text-sm text-destructive">{submitError}</p>
             )}
 
-            <form.Subscribe selector={(state) => state.isSubmitting}>
-              {(isSubmitting) => (
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Unlocking...' : 'Unlock'}
-                </Button>
-              )}
-            </form.Subscribe>
+            <form.AppForm>
+              <form.SubmitButton
+                label="Unlock"
+                submittingLabel="Unlocking..."
+                className="w-full"
+              />
+            </form.AppForm>
           </form>
         </CardContent>
       </Card>

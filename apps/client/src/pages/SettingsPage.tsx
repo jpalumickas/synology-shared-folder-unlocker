@@ -7,13 +7,11 @@ import {
   CardDescription,
   CardHeader,
   CardTitle,
-  Input,
   Separator,
 } from '@synology-shared-folder-unlocker/theme'
 import { ArrowLeft, Clock, Shield } from 'lucide-react'
 import { api } from '../lib/api'
-import { useAppForm, getFieldError } from '../hooks/form/useForm'
-import { FormWrapper } from '../components/FormWrapper'
+import { useAppForm } from '../hooks/form/useForm'
 
 function PollingForm({ initialInterval }: { initialInterval: number }) {
   const [submitError, setSubmitError] = useState('')
@@ -48,23 +46,15 @@ function PollingForm({ initialInterval }: { initialInterval: number }) {
       }}
       className="space-y-4"
     >
-      <form.Field name="interval">
+      <form.AppField name="interval">
         {(field) => (
-          <FormWrapper
+          <field.NumberField
             label="Polling Interval (seconds)"
-            error={getFieldError(field)}
+            min={10}
             description="How often to check and auto-unlock share folders (minimum 10s)"
-          >
-            <Input
-              type="number"
-              min={10}
-              value={field.state.value}
-              onChange={(e) => field.handleChange(Number(e.target.value))}
-              onBlur={field.handleBlur}
-            />
-          </FormWrapper>
+          />
         )}
-      </form.Field>
+      </form.AppField>
 
       {submitError && <p className="text-sm text-destructive">{submitError}</p>}
       {saved && (
@@ -74,13 +64,9 @@ function PollingForm({ initialInterval }: { initialInterval: number }) {
       )}
 
       <div className="flex justify-end">
-        <form.Subscribe selector={(state) => state.isSubmitting}>
-          {(isSubmitting) => (
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Saving...' : 'Save'}
-            </Button>
-          )}
-        </form.Subscribe>
+        <form.AppForm>
+          <form.SubmitButton label="Save" submittingLabel="Saving..." />
+        </form.AppForm>
       </div>
     </form>
   )
@@ -134,57 +120,39 @@ function ChangePasswordForm() {
       autoComplete="off"
       className="space-y-4"
     >
-      <form.Field name="currentPassword">
+      <form.AppField name="currentPassword">
         {(field) => (
-          <FormWrapper label="Current Password" error={getFieldError(field)}>
-            <Input
-              type="password"
-              autoComplete="off"
-              data-1p-ignore
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-            />
-          </FormWrapper>
+          <field.TextField
+            label="Current Password"
+            type="password"
+            disablePasswordManager
+          />
         )}
-      </form.Field>
+      </form.AppField>
 
       <Separator />
 
-      <form.Field name="newPassword">
+      <form.AppField name="newPassword">
         {(field) => (
-          <FormWrapper label="New Password" error={getFieldError(field)}>
-            <Input
-              type="password"
-              autoComplete="off"
-              data-1p-ignore
-              placeholder="At least 8 characters"
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-            />
-          </FormWrapper>
+          <field.TextField
+            label="New Password"
+            type="password"
+            placeholder="At least 8 characters"
+            disablePasswordManager
+          />
         )}
-      </form.Field>
+      </form.AppField>
 
-      <form.Field name="confirmPassword">
+      <form.AppField name="confirmPassword">
         {(field) => (
-          <FormWrapper
+          <field.TextField
             label="Confirm New Password"
-            error={getFieldError(field)}
-          >
-            <Input
-              type="password"
-              autoComplete="off"
-              data-1p-ignore
-              placeholder="Re-enter new password"
-              value={field.state.value}
-              onChange={(e) => field.handleChange(e.target.value)}
-              onBlur={field.handleBlur}
-            />
-          </FormWrapper>
+            type="password"
+            placeholder="Re-enter new password"
+            disablePasswordManager
+          />
         )}
-      </form.Field>
+      </form.AppField>
 
       {submitError && <p className="text-sm text-destructive">{submitError}</p>}
       {saved && (
@@ -194,13 +162,12 @@ function ChangePasswordForm() {
       )}
 
       <div className="flex justify-end">
-        <form.Subscribe selector={(state) => state.isSubmitting}>
-          {(isSubmitting) => (
-            <Button type="submit" disabled={isSubmitting}>
-              {isSubmitting ? 'Changing...' : 'Change Password'}
-            </Button>
-          )}
-        </form.Subscribe>
+        <form.AppForm>
+          <form.SubmitButton
+            label="Change Password"
+            submittingLabel="Changing..."
+          />
+        </form.AppForm>
       </div>
     </form>
   )

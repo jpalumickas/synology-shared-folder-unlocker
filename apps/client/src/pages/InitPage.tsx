@@ -1,18 +1,15 @@
 import { useState } from 'react'
 import { z } from 'zod'
 import {
-  Button,
   Card,
   CardContent,
   CardDescription,
   CardHeader,
   CardTitle,
-  Input,
 } from '@synology-shared-folder-unlocker/theme'
 import { Shield } from 'lucide-react'
 import { api } from '../lib/api'
-import { useAppForm, getFieldError } from '../hooks/form/useForm'
-import { FormWrapper } from '../components/FormWrapper'
+import { useAppForm } from '../hooks/form/useForm'
 
 export function InitPage({ onComplete }: { onComplete: () => void }) {
   const [submitError, setSubmitError] = useState('')
@@ -70,56 +67,38 @@ export function InitPage({ onComplete }: { onComplete: () => void }) {
             }}
             className="space-y-4"
           >
-            <form.Field name="password">
+            <form.AppField name="password">
               {(field) => (
-                <FormWrapper
+                <field.TextField
                   label="Master Password"
-                  error={getFieldError(field)}
-                >
-                  <Input
-                    type="password"
-                    placeholder="At least 8 characters"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                    autoFocus
-                  />
-                </FormWrapper>
+                  type="password"
+                  placeholder="At least 8 characters"
+                  autoFocus
+                />
               )}
-            </form.Field>
+            </form.AppField>
 
-            <form.Field name="confirm">
+            <form.AppField name="confirm">
               {(field) => (
-                <FormWrapper
+                <field.TextField
                   label="Confirm Password"
-                  error={getFieldError(field)}
-                >
-                  <Input
-                    type="password"
-                    placeholder="Re-enter password"
-                    value={field.state.value}
-                    onChange={(e) => field.handleChange(e.target.value)}
-                    onBlur={field.handleBlur}
-                  />
-                </FormWrapper>
+                  type="password"
+                  placeholder="Re-enter password"
+                />
               )}
-            </form.Field>
+            </form.AppField>
 
             {submitError && (
               <p className="text-sm text-destructive">{submitError}</p>
             )}
 
-            <form.Subscribe selector={(state) => state.isSubmitting}>
-              {(isSubmitting) => (
-                <Button
-                  type="submit"
-                  className="w-full"
-                  disabled={isSubmitting}
-                >
-                  {isSubmitting ? 'Initializing...' : 'Initialize'}
-                </Button>
-              )}
-            </form.Subscribe>
+            <form.AppForm>
+              <form.SubmitButton
+                label="Initialize"
+                submittingLabel="Initializing..."
+                className="w-full"
+              />
+            </form.AppForm>
           </form>
         </CardContent>
       </Card>
