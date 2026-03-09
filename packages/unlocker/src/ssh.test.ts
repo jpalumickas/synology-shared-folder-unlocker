@@ -42,7 +42,7 @@ vi.mock('ssh2', () => {
       ) {
         capturedCommands.push(command)
         if (shouldExecFail) {
-          cb(execError!, null as unknown as MockStream)
+          cb(execError as Error, null as unknown as MockStream)
           return
         }
         const stream = new MockStream()

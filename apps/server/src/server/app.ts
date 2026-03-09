@@ -121,14 +121,14 @@ api.post('/share-folders/poll', requireUnlocked, async (c) => {
 // --- Routes requiring valid session ---
 
 api.get('/nas', requireSession, (c) => {
-  const config = store.getConfig()!
+  const config = store.requireConfig()
   return c.json(config.nasList)
 })
 
 api.post('/nas', requireSession, async (c) => {
   const body = await c.req.json<Omit<NasDevice, 'id' | 'shareFolders'>>()
-  const config = store.getConfig()!
-  const password = store.getMasterPassword()!
+  const config = store.requireConfig()
+  const password = store.requireMasterPassword()
 
   const nas: NasDevice = {
     id: randomUUID(),
@@ -150,8 +150,8 @@ api.post('/nas', requireSession, async (c) => {
 api.put('/nas/:id', requireSession, async (c) => {
   const { id } = c.req.param()
   const body = await c.req.json<Partial<NasDevice>>()
-  const config = store.getConfig()!
-  const password = store.getMasterPassword()!
+  const config = store.requireConfig()
+  const password = store.requireMasterPassword()
 
   const nas = config.nasList.find((n) => n.id === id)
   if (!nas) return c.json({ error: 'NAS not found' }, 404)
@@ -170,8 +170,8 @@ api.put('/nas/:id', requireSession, async (c) => {
 
 api.delete('/nas/:id', requireSession, async (c) => {
   const { id } = c.req.param()
-  const config = store.getConfig()!
-  const password = store.getMasterPassword()!
+  const config = store.requireConfig()
+  const password = store.requireMasterPassword()
 
   config.nasList = config.nasList.filter((n) => n.id !== id)
   store.removeNasStatuses(id)
@@ -185,8 +185,8 @@ api.delete('/nas/:id', requireSession, async (c) => {
 api.post('/nas/:nasId/share-folders', requireSession, async (c) => {
   const { nasId } = c.req.param()
   const body = await c.req.json<Omit<EncryptedShareFolder, 'id'>>()
-  const config = store.getConfig()!
-  const password = store.getMasterPassword()!
+  const config = store.requireConfig()
+  const password = store.requireMasterPassword()
 
   const nas = config.nasList.find((n) => n.id === nasId)
   if (!nas) return c.json({ error: 'NAS not found' }, 404)
@@ -212,8 +212,8 @@ api.put(
   async (c) => {
     const { nasId, shareFolderId } = c.req.param()
     const body = await c.req.json<Partial<EncryptedShareFolder>>()
-    const config = store.getConfig()!
-    const password = store.getMasterPassword()!
+    const config = store.requireConfig()
+    const password = store.requireMasterPassword()
 
     const nas = config.nasList.find((n) => n.id === nasId)
     if (!nas) return c.json({ error: 'NAS not found' }, 404)
@@ -236,8 +236,8 @@ api.delete(
   requireSession,
   async (c) => {
     const { nasId, shareFolderId } = c.req.param()
-    const config = store.getConfig()!
-    const password = store.getMasterPassword()!
+    const config = store.requireConfig()
+    const password = store.requireMasterPassword()
 
     const nas = config.nasList.find((n) => n.id === nasId)
     if (!nas) return c.json({ error: 'NAS not found' }, 404)
@@ -256,7 +256,7 @@ api.post(
   requireSession,
   async (c) => {
     const { nasId, shareFolderId } = c.req.param()
-    const config = store.getConfig()!
+    const config = store.requireConfig()
 
     const nas = config.nasList.find((n) => n.id === nasId)
     if (!nas) return c.json({ error: 'NAS not found' }, 404)
@@ -277,14 +277,14 @@ api.post(
 )
 
 api.get('/settings', requireSession, (c) => {
-  const config = store.getConfig()!
+  const config = store.requireConfig()
   return c.json({ pollingInterval: config.pollingInterval })
 })
 
 api.put('/settings', requireSession, async (c) => {
   const body = await c.req.json<{ pollingInterval?: number }>()
-  const config = store.getConfig()!
-  const password = store.getMasterPassword()!
+  const config = store.requireConfig()
+  const password = store.requireMasterPassword()
 
   if (body.pollingInterval !== undefined) {
     config.pollingInterval = Math.max(10, body.pollingInterval)
@@ -312,7 +312,7 @@ api.post('/change-password', requireSession, async (c) => {
     return c.json({ error: 'Current password is incorrect' }, 401)
   }
 
-  const config = store.getConfig()!
+  const config = store.requireConfig()
   await saveConfig(config, newPassword)
   store.setMasterPassword(newPassword)
 

@@ -8,21 +8,25 @@
     "dev": "concurrently -n server,client -c blue,green \"pnpm --filter @synology-shared-folder-unlocker/server dev\" \"pnpm --filter @synology-shared-folder-unlocker/client dev\"",
     "build": "pnpm --filter @synology-shared-folder-unlocker/client build && pnpm --filter @synology-shared-folder-unlocker/server build",
     "start": "pnpm --filter @synology-shared-folder-unlocker/server start",
+    "lint": "eslint .",
     "typecheck": "pnpm -r typecheck",
     "test": "vitest run",
     "test:watch": "vitest",
     "test:coverage": "vitest run --coverage"
   },
   "devDependencies": {
+    "@eslint/js": "^10.0.1",
     "@testing-library/jest-dom": "^6.9.1",
     "@testing-library/react": "^16.3.2",
     "@testing-library/user-event": "^14.6.1",
     "@types/node": "^25.4.0",
     "@vitest/coverage-v8": "^4.0.18",
     "concurrently": "^9.2.1",
+    "eslint": "^10.0.3",
     "jsdom": "^28.1.0",
     "prettier": "^3.8.1",
     "typescript": "^5.9.3",
+    "typescript-eslint": "^8.57.0",
     "vitest": "^4.0.18"
   },
   "pnpm": {

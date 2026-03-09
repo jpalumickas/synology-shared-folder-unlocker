@@ -58,7 +58,17 @@ class Store {
     return this.config
   }
 
+  requireConfig(): AppConfig {
+    if (!this.config) throw new Error('Store is not unlocked')
+    return this.config
+  }
+
   getMasterPassword(): string | null {
+    return this.masterPassword
+  }
+
+  requireMasterPassword(): string {
+    if (!this.masterPassword) throw new Error('Store is not unlocked')
     return this.masterPassword
   }
 
