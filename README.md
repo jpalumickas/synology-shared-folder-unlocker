@@ -99,56 +99,6 @@ sudo /usr/syno/sbin/synoshare --enc_get_info <folder_name>
 sudo /usr/syno/sbin/synoshare --enc_mount <folder_name> <password>
 ```
 
-## Development
-
-### Setup
-
-```bash
-# Install dependencies
-pnpm install
-
-# Start both server and client in dev mode
-pnpm dev
-```
-
-The client dev server runs on `http://localhost:5173` and proxies API requests to the backend on port 3001.
-
-### Scripts
-
-| Command              | Description                                      |
-| -------------------- | ------------------------------------------------ |
-| `pnpm dev`           | Start server and client in development mode      |
-| `pnpm build`         | Build client and server for production           |
-| `pnpm start`         | Start the production server                      |
-| `pnpm typecheck`     | Run TypeScript type checking across all packages |
-| `pnpm test`          | Run tests                                        |
-| `pnpm test:watch`    | Run tests in watch mode                          |
-| `pnpm test:coverage` | Run tests with coverage report                   |
-
-### Project Structure
-
-```
-.
-├── apps/
-│   ├── client/          # React + Vite frontend
-│   └── server/          # Hono API backend
-├── packages/
-│   ├── config/          # Encrypted config storage & crypto utilities
-│   ├── theme/           # Shared UI components (shadcn/ui based)
-│   └── unlocker/        # SSH connection, polling, and unlock logic
-├── Dockerfile           # Multi-stage production build
-└── vitest.config.ts     # Test configuration
-```
-
-### Tech Stack
-
-- **Runtime:** Node.js 25
-- **Package Manager:** pnpm (workspace monorepo)
-- **Backend:** Hono, ssh2
-- **Frontend:** React 19, Vite, Tailwind CSS, Radix UI
-- **Testing:** Vitest
-- **Language:** TypeScript (ESM)
-
 ## Security
 
 - All NAS credentials and folder passwords are encrypted at rest using AES-256-GCM with a key derived from your master password (PBKDF2, 600,000 iterations, SHA-512).
