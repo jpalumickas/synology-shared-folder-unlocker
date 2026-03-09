@@ -113,6 +113,7 @@ function NasForm({
         e.preventDefault()
         form.handleSubmit()
       }}
+      autoComplete="off"
       className="space-y-4"
     >
       <form.Field name="name">
@@ -158,6 +159,8 @@ function NasForm({
         {(field) => (
           <FormWrapper label="Username" error={getFieldError(field)}>
             <Input
+              autoComplete="off"
+              data-1p-ignore
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
@@ -172,6 +175,8 @@ function NasForm({
           <FormWrapper label="SSH Password" error={getFieldError(field)}>
             <Input
               type="password"
+              autoComplete="off"
+              data-1p-ignore
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
@@ -240,6 +245,7 @@ function ShareFolderForm({
         e.preventDefault()
         form.handleSubmit()
       }}
+      autoComplete="off"
       className="space-y-4"
     >
       <form.Field name="name">
@@ -264,6 +270,8 @@ function ShareFolderForm({
           <FormWrapper label="Encryption Password" error={getFieldError(field)}>
             <Input
               type="password"
+              autoComplete="off"
+              data-1p-ignore
               value={field.state.value}
               onChange={(e) => field.handleChange(e.target.value)}
               onBlur={field.handleBlur}
@@ -328,6 +336,7 @@ function SettingsForm({
         e.preventDefault()
         form.handleSubmit()
       }}
+      autoComplete="off"
       className="space-y-4"
     >
       <form.Field name="interval">
