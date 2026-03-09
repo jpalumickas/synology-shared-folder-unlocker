@@ -1,3 +1,4 @@
+import { useState } from 'react'
 import {
   Button,
   Card,
@@ -6,10 +7,21 @@ import {
   CardHeader,
   CardTitle,
   ConfirmDialog,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Separator,
   cn,
 } from '@synology-shared-folder-unlocker/theme'
-import { FolderLock, Pencil, Server, Trash2 } from 'lucide-react'
+import {
+  EllipsisVertical,
+  FolderLock,
+  Pencil,
+  Server,
+  Trash2,
+} from 'lucide-react'
 import type { NasDevice } from '@synology-shared-folder-unlocker/config'
 import { useDeleteNas } from '../../../../hooks/api'
 import { useEditNasDialog } from '../../hooks/useEditNasDialog'
@@ -20,6 +32,7 @@ export function NasCard({ nas }: { nas: NasDevice }) {
   const { deleteNas } = useDeleteNas()
   const openEditNas = useEditNasDialog((s) => s.open)
   const openAddShareFolder = useAddShareFolderDialog((s) => s.open)
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   return (
     <Card>
@@ -45,28 +58,36 @@ export function NasCard({ nas }: { nas: NasDevice }) {
               <FolderLock className="h-3.5 w-3.5" />
               Add Folder
             </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={() => openEditNas(nas)}
-            >
-              <Pencil className="h-3.5 w-3.5" />
-            </Button>
+            <DropdownMenu>
+              <DropdownMenuTrigger asChild>
+                <Button variant="ghost" size="icon-sm">
+                  <EllipsisVertical className="h-4 w-4" />
+                </Button>
+              </DropdownMenuTrigger>
+              <DropdownMenuContent align="end">
+                <DropdownMenuItem onClick={() => openEditNas(nas)}>
+                  <Pencil className="h-3.5 w-3.5" />
+                  Edit
+                </DropdownMenuItem>
+                <DropdownMenuSeparator />
+                <DropdownMenuItem
+                  variant="destructive"
+                  onClick={() => setConfirmDeleteOpen(true)}
+                >
+                  <Trash2 className="h-3.5 w-3.5" />
+                  Delete
+                </DropdownMenuItem>
+              </DropdownMenuContent>
+            </DropdownMenu>
             <ConfirmDialog
               title="Delete NAS Device"
               description="This will delete this NAS device and all its share folders. This action cannot be undone."
               actionLabel="Delete"
               variant="destructive"
               onConfirm={() => deleteNas(nas.id)}
-            >
-              <Button
-                variant="ghost"
-                size="icon-sm"
-                className="text-destructive hover:text-destructive"
-              >
-                <Trash2 className="h-3.5 w-3.5" />
-              </Button>
-            </ConfirmDialog>
+              open={confirmDeleteOpen}
+              onOpenChange={setConfirmDeleteOpen}
+            />
           </div>
         </CardAction>
       </CardHeader>

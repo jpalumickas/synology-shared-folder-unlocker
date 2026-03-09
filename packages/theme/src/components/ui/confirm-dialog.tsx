@@ -18,6 +18,8 @@ function ConfirmDialog({
   actionLabel = 'Confirm',
   variant = 'default',
   onConfirm,
+  open: controlledOpen,
+  onOpenChange: controlledOnOpenChange,
   children,
 }: {
   title: string
@@ -25,9 +27,13 @@ function ConfirmDialog({
   actionLabel?: string
   variant?: 'default' | 'destructive'
   onConfirm: () => unknown | Promise<unknown>
-  children: ReactNode
+  open?: boolean
+  onOpenChange?: (open: boolean) => void
+  children?: ReactNode
 }) {
-  const [open, setOpen] = useState(false)
+  const [internalOpen, setInternalOpen] = useState(false)
+  const open = controlledOpen ?? internalOpen
+  const setOpen = controlledOnOpenChange ?? setInternalOpen
 
   const handleConfirm = async () => {
     await onConfirm()
@@ -36,7 +42,7 @@ function ConfirmDialog({
 
   return (
     <AlertDialog open={open} onOpenChange={setOpen}>
-      <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>
+      {children && <AlertDialogTrigger asChild>{children}</AlertDialogTrigger>}
       <AlertDialogContent>
         <AlertDialogHeader>
           <AlertDialogTitle>{title}</AlertDialogTitle>

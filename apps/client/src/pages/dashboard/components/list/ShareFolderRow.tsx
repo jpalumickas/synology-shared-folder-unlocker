@@ -1,9 +1,15 @@
+import { useState } from 'react'
 import {
   Button,
   ConfirmDialog,
+  DropdownMenu,
+  DropdownMenuContent,
+  DropdownMenuItem,
+  DropdownMenuSeparator,
+  DropdownMenuTrigger,
   Separator,
 } from '@synology-shared-folder-unlocker/theme'
-import { Pencil, Trash2, Unlock } from 'lucide-react'
+import { EllipsisVertical, Pencil, Trash2, Unlock } from 'lucide-react'
 import type { EncryptedShareFolder } from '@synology-shared-folder-unlocker/config'
 import {
   useUnlockShareFolder,
@@ -26,6 +32,7 @@ export function ShareFolderRow({
   const { unlockShareFolder } = useUnlockShareFolder()
   const { deleteShareFolder } = useDeleteShareFolder()
   const openEditShareFolder = useEditShareFolderDialog((s) => s.open)
+  const [confirmDeleteOpen, setConfirmDeleteOpen] = useState(false)
 
   return (
     <div>
@@ -62,13 +69,29 @@ export function ShareFolderRow({
               Unlock
             </Button>
           )}
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            onClick={() => openEditShareFolder({ nasId, shareFolder })}
-          >
-            <Pencil className="h-3 w-3" />
-          </Button>
+          <DropdownMenu>
+            <DropdownMenuTrigger asChild>
+              <Button variant="ghost" size="icon-xs">
+                <EllipsisVertical className="h-3.5 w-3.5" />
+              </Button>
+            </DropdownMenuTrigger>
+            <DropdownMenuContent align="end">
+              <DropdownMenuItem
+                onClick={() => openEditShareFolder({ nasId, shareFolder })}
+              >
+                <Pencil className="h-3.5 w-3.5" />
+                Edit
+              </DropdownMenuItem>
+              <DropdownMenuSeparator />
+              <DropdownMenuItem
+                variant="destructive"
+                onClick={() => setConfirmDeleteOpen(true)}
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+                Delete
+              </DropdownMenuItem>
+            </DropdownMenuContent>
+          </DropdownMenu>
           <ConfirmDialog
             title="Delete Share Folder"
             description="This will delete this share folder configuration. This action cannot be undone."
@@ -77,15 +100,9 @@ export function ShareFolderRow({
             onConfirm={() =>
               deleteShareFolder({ nasId, shareFolderId: shareFolder.id })
             }
-          >
-            <Button
-              variant="ghost"
-              size="icon-xs"
-              className="text-destructive hover:text-destructive"
-            >
-              <Trash2 className="h-3 w-3" />
-            </Button>
-          </ConfirmDialog>
+            open={confirmDeleteOpen}
+            onOpenChange={setConfirmDeleteOpen}
+          />
         </div>
       </div>
     </div>
