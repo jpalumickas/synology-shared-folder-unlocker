@@ -16,7 +16,9 @@ class Store {
   }
 
   isSessionValid(token: string | undefined): boolean {
-    if (!token || !this.sessionToken) return false
+    if (!token || !this.sessionToken) {
+      return false
+    }
     return token === this.sessionToken
   }
 
@@ -59,7 +61,9 @@ class Store {
   }
 
   requireConfig(): AppConfig {
-    if (!this.config) throw new Error('Store is not unlocked')
+    if (!this.config) {
+      throw new Error('Store is not unlocked')
+    }
     return this.config
   }
 
@@ -68,7 +72,9 @@ class Store {
   }
 
   requireMasterPassword(): string {
-    if (!this.masterPassword) throw new Error('Store is not unlocked')
+    if (!this.masterPassword) {
+      throw new Error('Store is not unlocked')
+    }
     return this.masterPassword
   }
 

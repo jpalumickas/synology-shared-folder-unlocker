@@ -31,9 +31,13 @@ const indexRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/',
   beforeLoad: ({ context }) => {
-    if (!context.status.initialized) throw redirect({ to: '/init' })
-    if (!context.status.unlocked || !context.status.sessionValid)
+    if (!context.status.initialized) {
+      throw redirect({ to: '/init' })
+    }
+
+    if (!context.status.unlocked || !context.status.sessionValid) {
       throw redirect({ to: '/unlock' })
+    }
   },
   component: DashboardPage,
 })
@@ -42,9 +46,12 @@ const settingsRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/settings',
   beforeLoad: ({ context }) => {
-    if (!context.status.initialized) throw redirect({ to: '/init' })
-    if (!context.status.unlocked || !context.status.sessionValid)
+    if (!context.status.initialized) {
+      throw redirect({ to: '/init' })
+    }
+    if (!context.status.unlocked || !context.status.sessionValid) {
       throw redirect({ to: '/unlock' })
+    }
   },
   component: SettingsPage,
 })
@@ -68,9 +75,12 @@ const unlockRoute = createRoute({
   getParentRoute: () => rootRoute,
   path: '/unlock',
   beforeLoad: ({ context }) => {
-    if (!context.status.initialized) throw redirect({ to: '/init' })
-    if (context.status.unlocked && context.status.sessionValid)
+    if (!context.status.initialized) {
+      throw redirect({ to: '/init' })
+    }
+    if (context.status.unlocked && context.status.sessionValid) {
       throw redirect({ to: '/' })
+    }
   },
   component: UnlockPage,
 })

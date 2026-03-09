@@ -154,13 +154,25 @@ api.put('/nas/:id', requireSession, async (c) => {
   const password = store.requireMasterPassword()
 
   const nas = config.nasList.find((n) => n.id === id)
-  if (!nas) return c.json({ error: 'NAS not found' }, 404)
+  if (!nas) {
+    return c.json({ error: 'NAS not found' }, 404)
+  }
 
-  if (body.name !== undefined) nas.name = body.name
-  if (body.host !== undefined) nas.host = body.host
-  if (body.port !== undefined) nas.port = body.port
-  if (body.username !== undefined) nas.username = body.username
-  if (body.password !== undefined) nas.password = body.password
+  if (body.name !== undefined) {
+    nas.name = body.name
+  }
+  if (body.host !== undefined) {
+    nas.host = body.host
+  }
+  if (body.port !== undefined) {
+    nas.port = body.port
+  }
+  if (body.username !== undefined) {
+    nas.username = body.username
+  }
+  if (body.password !== undefined) {
+    nas.password = body.password
+  }
 
   store.updateConfig(config)
   await saveConfig(config, password)
@@ -189,7 +201,9 @@ api.post('/nas/:nasId/share-folders', requireSession, async (c) => {
   const password = store.requireMasterPassword()
 
   const nas = config.nasList.find((n) => n.id === nasId)
-  if (!nas) return c.json({ error: 'NAS not found' }, 404)
+  if (!nas) {
+    return c.json({ error: 'NAS not found' }, 404)
+  }
 
   const shareFolder: EncryptedShareFolder = {
     id: randomUUID(),
@@ -216,13 +230,21 @@ api.put(
     const password = store.requireMasterPassword()
 
     const nas = config.nasList.find((n) => n.id === nasId)
-    if (!nas) return c.json({ error: 'NAS not found' }, 404)
+    if (!nas) {
+      return c.json({ error: 'NAS not found' }, 404)
+    }
 
     const shareFolder = nas.shareFolders.find((s) => s.id === shareFolderId)
-    if (!shareFolder) return c.json({ error: 'Share folder not found' }, 404)
+    if (!shareFolder) {
+      return c.json({ error: 'Share folder not found' }, 404)
+    }
 
-    if (body.name !== undefined) shareFolder.name = body.name
-    if (body.password !== undefined) shareFolder.password = body.password
+    if (body.name !== undefined) {
+      shareFolder.name = body.name
+    }
+    if (body.password !== undefined) {
+      shareFolder.password = body.password
+    }
 
     store.updateConfig(config)
     await saveConfig(config, password)
@@ -240,7 +262,9 @@ api.delete(
     const password = store.requireMasterPassword()
 
     const nas = config.nasList.find((n) => n.id === nasId)
-    if (!nas) return c.json({ error: 'NAS not found' }, 404)
+    if (!nas) {
+      return c.json({ error: 'NAS not found' }, 404)
+    }
 
     nas.shareFolders = nas.shareFolders.filter((s) => s.id !== shareFolderId)
     store.removeShareFolderStatus(nasId, shareFolderId)
@@ -259,10 +283,14 @@ api.post(
     const config = store.requireConfig()
 
     const nas = config.nasList.find((n) => n.id === nasId)
-    if (!nas) return c.json({ error: 'NAS not found' }, 404)
+    if (!nas) {
+      return c.json({ error: 'NAS not found' }, 404)
+    }
 
     const shareFolder = nas.shareFolders.find((s) => s.id === shareFolderId)
-    if (!shareFolder) return c.json({ error: 'Share folder not found' }, 404)
+    if (!shareFolder) {
+      return c.json({ error: 'Share folder not found' }, 404)
+    }
 
     const result = await unlockShareFolder(nas, shareFolder)
     store.updateShareFolderStatus(

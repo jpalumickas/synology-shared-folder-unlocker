@@ -6,7 +6,9 @@ import { Separator } from './separator'
 
 function getSep(container: HTMLElement) {
   const el = container.firstElementChild
-  if (!el) throw new Error('No element rendered')
+  if (!el) {
+    throw new Error('No element rendered')
+  }
   return el
 }
 

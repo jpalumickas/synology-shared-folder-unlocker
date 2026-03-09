@@ -5,7 +5,9 @@ let pollInterval: ReturnType<typeof setInterval> | null = null
 
 export async function pollOnce(): Promise<void> {
   const config = store.getConfig()
-  if (!config) return
+  if (!config) {
+    return
+  }
 
   for (const nas of config.nasList) {
     for (const shareFolder of nas.shareFolders) {
@@ -48,7 +50,9 @@ export function startPoller(): void {
   stopPoller()
 
   const config = store.getConfig()
-  if (!config) return
+  if (!config) {
+    return
+  }
 
   const intervalMs = (config.pollingInterval || 120) * 1000
   console.log(

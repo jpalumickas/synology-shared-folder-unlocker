@@ -51,9 +51,12 @@ vi.mock('ssh2', () => {
         })
         const result = execResults.shift() ?? { stdout: '', code: 0 }
         cb(null, stream)
-        if (result.stdout) stream.emit('data', Buffer.from(result.stdout))
-        if (result.stderr)
+        if (result.stdout) {
+          stream.emit('data', Buffer.from(result.stdout))
+        }
+        if (result.stderr) {
           stream.stderr.emit('data', Buffer.from(result.stderr))
+        }
         stream.emit('close', 'code' in result ? result.code : 0)
       }
       end = vi.fn()

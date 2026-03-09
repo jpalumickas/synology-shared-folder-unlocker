@@ -318,14 +318,18 @@ export function DashboardPage() {
   const handleUpdateNas = async (
     data: Omit<NasDevice, 'id' | 'shareFolders'>
   ) => {
-    if (!editingNas) return
+    if (!editingNas) {
+      return
+    }
     await api.updateNas(editingNas.id, data)
     setEditingNas(null)
     fetchData()
   }
 
   const handleDeleteNas = async (id: string) => {
-    if (!confirm('Delete this NAS device and all its share folders?')) return
+    if (!confirm('Delete this NAS device and all its share folders?')) {
+      return
+    }
     await api.deleteNas(id)
     fetchData()
   }
@@ -334,7 +338,9 @@ export function DashboardPage() {
     name: string
     password: string
   }) => {
-    if (!addShareFolderNasId) return
+    if (!addShareFolderNasId) {
+      return
+    }
     await api.addShareFolder(addShareFolderNasId, data)
     setAddShareFolderNasId(null)
     fetchData()
@@ -344,7 +350,9 @@ export function DashboardPage() {
     name: string
     password: string
   }) => {
-    if (!editingShareFolder) return
+    if (!editingShareFolder) {
+      return
+    }
     await api.updateShareFolder(
       editingShareFolder.nasId,
       editingShareFolder.shareFolder.id,
@@ -358,7 +366,9 @@ export function DashboardPage() {
     nasId: string,
     shareFolderId: string
   ) => {
-    if (!confirm('Delete this share folder?')) return
+    if (!confirm('Delete this share folder?')) {
+      return
+    }
     await api.deleteShareFolder(nasId, shareFolderId)
     fetchData()
   }
