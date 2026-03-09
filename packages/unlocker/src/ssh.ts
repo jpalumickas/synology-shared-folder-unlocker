@@ -112,8 +112,15 @@ export function fetchHostFingerprint(
   })
 }
 
-function sudoCommand(nas: NasDevice, command: string): Promise<CommandResult> {
-  return executeCommand(nas, `sudo -S ${command} 2>&1`, nas.password)
+function sudoCommand(
+  nas: NasDevice,
+  command: string,
+  extraStdin?: string
+): Promise<CommandResult> {
+  const stdinData =
+    extraStdin !== undefined ? nas.password + '\n' + extraStdin : nas.password
+
+  return executeCommand(nas, `sudo -S ${command} 2>&1`, stdinData)
 }
 
 export async function checkShareFolderStatus(
@@ -161,7 +168,8 @@ export async function unlockShareFolder(
   try {
     const result = await sudoCommand(
       nas,
-      `/usr/syno/sbin/synoshare --enc_mount ${shellEscape(shareFolder.name)} ${shellEscape(shareFolder.password)}`
+      `sh -c 'read -r pw && /usr/syno/sbin/synoshare --enc_mount "$1" "$pw"' -- ${shellEscape(shareFolder.name)}`,
+      shareFolder.password
     )
 
     const output = result.stdout + result.stderr

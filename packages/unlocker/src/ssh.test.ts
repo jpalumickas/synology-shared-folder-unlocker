@@ -187,13 +187,20 @@ describe('unlockShareFolder', () => {
     expect(result.message).toBe('Network unreachable')
   })
 
-  it('uses sudo -S with enc_mount command', async () => {
+  it('uses sudo -S with enc_mount command and does not leak password in command', async () => {
     execResults = [{ code: 0 }]
     await unlockShareFolder(nas, shareFolder)
     expect(capturedCommands[0]).toContain('sudo -S')
     expect(capturedCommands[0]).toContain('synoshare --enc_mount')
     expect(capturedCommands[0]).toContain("'photos'")
-    expect(capturedCommands[0]).toContain("'enc-pass'")
+    expect(capturedCommands[0]).not.toContain('enc-pass')
+  })
+
+  it('passes share folder password via stdin', async () => {
+    execResults = [{ code: 0 }]
+    await unlockShareFolder(nas, shareFolder)
+    expect(capturedStdinData[0]).toContain('naspass')
+    expect(capturedStdinData[0]).toContain('enc-pass')
   })
 
   it('returns failure with non-Error throw', async () => {
@@ -204,11 +211,12 @@ describe('unlockShareFolder', () => {
     expect(result.message).toBe('Unknown error')
   })
 
-  it('escapes share folder password in unlock command', async () => {
+  it('does not include share folder password in command string', async () => {
     execResults = [{ code: 0 }]
     const sf = { ...shareFolder, password: "pass'word" }
     await unlockShareFolder(nas, sf)
-    expect(capturedCommands[0]).toContain("'pass'\\''word'")
+    expect(capturedCommands[0]).not.toContain('pass')
+    expect(capturedStdinData[0]).toContain("pass'word")
   })
 })
 
