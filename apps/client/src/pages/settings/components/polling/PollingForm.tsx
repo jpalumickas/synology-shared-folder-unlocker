@@ -1,11 +1,8 @@
-import { useState } from 'react'
 import { z } from 'zod'
 import { useAppForm } from '../../../../hooks/form/useForm'
 import { useUpdateSettings } from '../../../../hooks/api'
 
 export function PollingForm({ initialInterval }: { initialInterval: number }) {
-  const [submitError, setSubmitError] = useState('')
-  const [saved, setSaved] = useState(false)
   const { updateSettings } = useUpdateSettings()
 
   const form = useAppForm({
@@ -18,16 +15,9 @@ export function PollingForm({ initialInterval }: { initialInterval: number }) {
       }),
     },
     onSubmit: async ({ value }) => {
-      setSubmitError('')
-      setSaved(false)
-      try {
-        await updateSettings({
-          pollingInterval: value.interval,
-        })
-        setSaved(true)
-      } catch (err) {
-        setSubmitError(err instanceof Error ? err.message : 'Failed to save')
-      }
+      await updateSettings({
+        pollingInterval: value.interval,
+      })
     },
   })
 
@@ -48,13 +38,6 @@ export function PollingForm({ initialInterval }: { initialInterval: number }) {
           />
         )}
       </form.AppField>
-
-      {submitError && <p className="text-sm text-destructive">{submitError}</p>}
-      {saved && (
-        <p className="text-sm text-green-600 dark:text-green-400">
-          Settings saved.
-        </p>
-      )}
 
       <div className="flex justify-end">
         <form.AppForm>

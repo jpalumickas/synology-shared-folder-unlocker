@@ -5,6 +5,7 @@ import {
   CardContent,
   CardHeader,
   CardTitle,
+  ConfirmDialog,
   Separator,
   cn,
 } from '@synology-shared-folder-unlocker/theme'
@@ -19,14 +20,6 @@ export function NasCard({ nas }: { nas: NasDevice }) {
   const { deleteNas } = useDeleteNas()
   const openEditNas = useEditNasDialog((s) => s.open)
   const openAddShareFolder = useAddShareFolderDialog((s) => s.open)
-
-  const handleDelete = async () => {
-    if (!confirm('Delete this NAS device and all its share folders?')) {
-      return
-    }
-
-    await deleteNas(nas.id)
-  }
 
   return (
     <Card>
@@ -59,14 +52,21 @@ export function NasCard({ nas }: { nas: NasDevice }) {
             >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
-            <Button
-              variant="ghost"
-              size="icon-sm"
-              onClick={handleDelete}
-              className="text-destructive hover:text-destructive"
+            <ConfirmDialog
+              title="Delete NAS Device"
+              description="This will delete this NAS device and all its share folders. This action cannot be undone."
+              actionLabel="Delete"
+              variant="destructive"
+              onConfirm={() => deleteNas(nas.id)}
             >
-              <Trash2 className="h-3.5 w-3.5" />
-            </Button>
+              <Button
+                variant="ghost"
+                size="icon-sm"
+                className="text-destructive hover:text-destructive"
+              >
+                <Trash2 className="h-3.5 w-3.5" />
+              </Button>
+            </ConfirmDialog>
           </div>
         </CardAction>
       </CardHeader>

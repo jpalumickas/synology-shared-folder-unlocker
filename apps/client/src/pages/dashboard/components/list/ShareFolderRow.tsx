@@ -1,4 +1,8 @@
-import { Button, Separator } from '@synology-shared-folder-unlocker/theme'
+import {
+  Button,
+  ConfirmDialog,
+  Separator,
+} from '@synology-shared-folder-unlocker/theme'
 import { Pencil, Trash2, Unlock } from 'lucide-react'
 import type { EncryptedShareFolder } from '@synology-shared-folder-unlocker/config'
 import {
@@ -22,14 +26,6 @@ export function ShareFolderRow({
   const { unlockShareFolder } = useUnlockShareFolder()
   const { deleteShareFolder } = useDeleteShareFolder()
   const openEditShareFolder = useEditShareFolderDialog((s) => s.open)
-
-  const handleDelete = async () => {
-    if (!confirm('Delete this share folder?')) {
-      return
-    }
-
-    await deleteShareFolder({ nasId, shareFolderId: shareFolder.id })
-  }
 
   return (
     <div>
@@ -73,14 +69,23 @@ export function ShareFolderRow({
           >
             <Pencil className="h-3 w-3" />
           </Button>
-          <Button
-            variant="ghost"
-            size="icon-xs"
-            onClick={handleDelete}
-            className="text-destructive hover:text-destructive"
+          <ConfirmDialog
+            title="Delete Share Folder"
+            description="This will delete this share folder configuration. This action cannot be undone."
+            actionLabel="Delete"
+            variant="destructive"
+            onConfirm={() =>
+              deleteShareFolder({ nasId, shareFolderId: shareFolder.id })
+            }
           >
-            <Trash2 className="h-3 w-3" />
-          </Button>
+            <Button
+              variant="ghost"
+              size="icon-xs"
+              className="text-destructive hover:text-destructive"
+            >
+              <Trash2 className="h-3 w-3" />
+            </Button>
+          </ConfirmDialog>
         </div>
       </div>
     </div>

@@ -1,12 +1,9 @@
-import { useState } from 'react'
 import { z } from 'zod'
 import { Separator } from '@synology-shared-folder-unlocker/theme'
 import { useAppForm } from '../../../../hooks/form/useForm'
 import { useChangePassword } from '../../../../hooks/api'
 
 export function ChangePasswordForm() {
-  const [submitError, setSubmitError] = useState('')
-  const [saved, setSaved] = useState(false)
   const { changePassword } = useChangePassword()
 
   const form = useAppForm({
@@ -30,20 +27,11 @@ export function ChangePasswordForm() {
         }),
     },
     onSubmit: async ({ value }) => {
-      setSubmitError('')
-      setSaved(false)
-      try {
-        await changePassword({
-          currentPassword: value.currentPassword,
-          newPassword: value.newPassword,
-        })
-        setSaved(true)
-        form.reset()
-      } catch (err) {
-        setSubmitError(
-          err instanceof Error ? err.message : 'Failed to change password'
-        )
-      }
+      await changePassword({
+        currentPassword: value.currentPassword,
+        newPassword: value.newPassword,
+      })
+      form.reset()
     },
   })
 
@@ -89,13 +77,6 @@ export function ChangePasswordForm() {
           />
         )}
       </form.AppField>
-
-      {submitError && <p className="text-sm text-destructive">{submitError}</p>}
-      {saved && (
-        <p className="text-sm text-green-600 dark:text-green-400">
-          Password changed successfully.
-        </p>
-      )}
 
       <div className="flex justify-end">
         <form.AppForm>
