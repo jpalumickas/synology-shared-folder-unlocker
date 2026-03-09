@@ -1,4 +1,4 @@
-import { useState, useEffect, useCallback } from 'react'
+import { useState } from 'react'
 import { z } from 'zod'
 import {
   Badge,
@@ -24,9 +24,21 @@ import {
   Trash2,
   Unlock,
 } from 'lucide-react'
-import { api } from '../lib/api'
 import { useAppForm } from '../hooks/form/useForm'
 import { Navbar } from '../components/Navbar'
+import {
+  useNasList,
+  useShareFolderStatuses,
+  useSettings,
+  useAddNas,
+  useUpdateNas,
+  useDeleteNas,
+  useAddShareFolder,
+  useUpdateShareFolder,
+  useDeleteShareFolder,
+  useUnlockShareFolder,
+  usePollNow,
+} from '../hooks/api'
 import type {
   NasDevice,
   ShareFolderStatus,
@@ -243,10 +255,18 @@ function ShareFolderForm({
 // --- Dashboard Page ---
 
 export function DashboardPage() {
-  const [nasList, setNasList] = useState<NasDevice[]>([])
-  const [statuses, setStatuses] = useState<ShareFolderStatus[]>([])
-  const [pollingInterval, setPollingInterval] = useState(120)
-  const [loading, setLoading] = useState(true)
+  const { data: nasList = [], isLoading: nasLoading } = useNasList()
+  const { data: statuses = [] } = useShareFolderStatuses()
+  const { data: settings } = useSettings()
+
+  const addNas = useAddNas()
+  const updateNas = useUpdateNas()
+  const deleteNas = useDeleteNas()
+  const addShareFolder = useAddShareFolder()
+  const updateShareFolder = useUpdateShareFolder()
+  const deleteShareFolder = useDeleteShareFolder()
+  const unlockShareFolder = useUnlockShareFolder()
+  const pollNow = usePollNow()
 
   // Dialog states
   const [showAddNas, setShowAddNas] = useState(false)
@@ -258,61 +278,13 @@ export function DashboardPage() {
     nasId: string
     shareFolder: { id: string; name: string; password: string }
   } | null>(null)
-  const [polling, setPolling] = useState(false)
-
-  const fetchData = useCallback(async () => {
-    try {
-      const [nas, sts, settings] = await Promise.all([
-        api.getNasList(),
-        api.getShareFolderStatuses(),
-        api.getSettings(),
-      ])
-      setNasList(nas)
-      setStatuses(sts)
-      setPollingInterval(settings.pollingInterval)
-    } catch {
-      // Session may have expired
-    } finally {
-      setLoading(false)
-    }
-  }, [])
-
-  useEffect(() => {
-    fetchData()
-  }, [fetchData])
-
-  // Auto-refresh statuses every 10s
-  useEffect(() => {
-    const interval = setInterval(async () => {
-      try {
-        const sts = await api.getShareFolderStatuses()
-        setStatuses(sts)
-      } catch {
-        /* ignore */
-      }
-    }, 10_000)
-    return () => clearInterval(interval)
-  }, [])
 
   const getShareFolderStatus = (nasId: string, shareFolderId: string) =>
     statuses.find((s) => s.nasId === nasId && s.shareFolderId === shareFolderId)
 
-  const handlePollNow = async () => {
-    setPolling(true)
-    try {
-      const result = await api.pollNow()
-      setStatuses(result.statuses)
-    } catch {
-      /* ignore */
-    } finally {
-      setPolling(false)
-    }
-  }
-
   const handleAddNas = async (data: Omit<NasDevice, 'id' | 'shareFolders'>) => {
-    await api.addNas(data)
+    await addNas.mutateAsync(data)
     setShowAddNas(false)
-    fetchData()
   }
 
   const handleUpdateNas = async (
@@ -322,9 +294,8 @@ export function DashboardPage() {
       return
     }
 
-    await api.updateNas(editingNas.id, data)
+    await updateNas.mutateAsync({ id: editingNas.id, data })
     setEditingNas(null)
-    fetchData()
   }
 
   const handleDeleteNas = async (id: string) => {
@@ -332,8 +303,7 @@ export function DashboardPage() {
       return
     }
 
-    await api.deleteNas(id)
-    fetchData()
+    await deleteNas.mutateAsync(id)
   }
 
   const handleAddShareFolder = async (data: {
@@ -344,9 +314,8 @@ export function DashboardPage() {
       return
     }
 
-    await api.addShareFolder(addShareFolderNasId, data)
+    await addShareFolder.mutateAsync({ nasId: addShareFolderNasId, data })
     setAddShareFolderNasId(null)
-    fetchData()
   }
 
   const handleUpdateShareFolder = async (data: {
@@ -357,13 +326,12 @@ export function DashboardPage() {
       return
     }
 
-    await api.updateShareFolder(
-      editingShareFolder.nasId,
-      editingShareFolder.shareFolder.id,
-      data
-    )
+    await updateShareFolder.mutateAsync({
+      nasId: editingShareFolder.nasId,
+      shareFolderId: editingShareFolder.shareFolder.id,
+      data,
+    })
     setEditingShareFolder(null)
-    fetchData()
   }
 
   const handleDeleteShareFolder = async (
@@ -374,24 +342,10 @@ export function DashboardPage() {
       return
     }
 
-    await api.deleteShareFolder(nasId, shareFolderId)
-    fetchData()
+    await deleteShareFolder.mutateAsync({ nasId, shareFolderId })
   }
 
-  const handleUnlockShareFolder = async (
-    nasId: string,
-    shareFolderId: string
-  ) => {
-    try {
-      await api.unlockShareFolder(nasId, shareFolderId)
-      const sts = await api.getShareFolderStatuses()
-      setStatuses(sts)
-    } catch {
-      /* ignore */
-    }
-  }
-
-  if (loading) {
+  if (nasLoading) {
     return (
       <div className="min-h-screen flex items-center justify-center bg-background">
         <div className="flex flex-col items-center gap-3">
@@ -408,12 +362,14 @@ export function DashboardPage() {
         <Button
           variant="outline"
           size="sm"
-          onClick={handlePollNow}
-          disabled={polling}
+          onClick={() => pollNow.mutate()}
+          disabled={pollNow.isPending}
         >
-          <RefreshCw className={cn('h-4 w-4', polling && 'animate-spin')} />
+          <RefreshCw
+            className={cn('h-4 w-4', pollNow.isPending && 'animate-spin')}
+          />
           <span className="hidden sm:inline">
-            {polling ? 'Checking...' : 'Check Now'}
+            {pollNow.isPending ? 'Checking...' : 'Check Now'}
           </span>
         </Button>
       </Navbar>
@@ -530,10 +486,10 @@ export function DashboardPage() {
                                     variant="ghost"
                                     size="xs"
                                     onClick={() =>
-                                      handleUnlockShareFolder(
-                                        nas.id,
-                                        shareFolder.id
-                                      )
+                                      unlockShareFolder.mutate({
+                                        nasId: nas.id,
+                                        shareFolderId: shareFolder.id,
+                                      })
                                     }
                                     className="text-green-700 hover:text-green-800 dark:text-green-400"
                                   >
@@ -580,8 +536,8 @@ export function DashboardPage() {
         )}
 
         <p className="text-xs text-muted-foreground mt-6 text-center">
-          Polling every {pollingInterval}s. Share folders are checked and
-          automatically unlocked in the background.
+          Polling every {settings?.pollingInterval ?? '...'}s. Share folders are
+          checked and automatically unlocked in the background.
         </p>
       </main>
 
@@ -600,7 +556,11 @@ export function DashboardPage() {
 
       <Dialog
         open={!!editingNas}
-        onOpenChange={(open) => !open && setEditingNas(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingNas(null)
+          }
+        }}
       >
         <DialogContent>
           <DialogHeader>
@@ -618,7 +578,11 @@ export function DashboardPage() {
 
       <Dialog
         open={!!addShareFolderNasId}
-        onOpenChange={(open) => !open && setAddShareFolderNasId(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setAddShareFolderNasId(null)
+          }
+        }}
       >
         <DialogContent>
           <DialogHeader>
@@ -633,7 +597,11 @@ export function DashboardPage() {
 
       <Dialog
         open={!!editingShareFolder}
-        onOpenChange={(open) => !open && setEditingShareFolder(null)}
+        onOpenChange={(open) => {
+          if (!open) {
+            setEditingShareFolder(null)
+          }
+        }}
       >
         <DialogContent>
           <DialogHeader>

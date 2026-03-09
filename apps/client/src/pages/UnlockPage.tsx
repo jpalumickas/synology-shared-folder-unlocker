@@ -9,7 +9,7 @@ import {
 } from '@synology-shared-folder-unlocker/theme'
 import { LockKeyhole } from 'lucide-react'
 import { useRouter, useNavigate } from '@tanstack/react-router'
-import { api } from '../lib/api'
+import { apiClient } from '../services/apiClient'
 import { useAppForm } from '../hooks/form/useForm'
 
 export function UnlockPage() {
@@ -29,7 +29,7 @@ export function UnlockPage() {
     onSubmit: async ({ value }) => {
       setSubmitError('')
       try {
-        await api.unlock(value.password)
+        await apiClient.unlock(value.password)
         await router.invalidate()
         await navigate({ to: '/' })
       } catch (err) {

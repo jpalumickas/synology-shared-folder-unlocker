@@ -23,7 +23,7 @@ async function request<T>(path: string, options?: RequestInit): Promise<T> {
   return data as T
 }
 
-export const api = {
+export const apiClient = {
   getStatus: () => request<AppStatus>('/status'),
 
   init: (password: string) =>

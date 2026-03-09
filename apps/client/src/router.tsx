@@ -5,7 +5,7 @@ import {
   redirect,
   Outlet,
 } from '@tanstack/react-router'
-import { api } from './lib/api'
+import { apiClient } from './services/apiClient'
 import { DashboardPage } from './pages/DashboardPage'
 import { InitPage } from './pages/InitPage'
 import { UnlockPage } from './pages/UnlockPage'
@@ -13,7 +13,7 @@ import { SettingsPage } from './pages/SettingsPage'
 
 const rootRoute = createRootRoute({
   beforeLoad: async () => {
-    const status = await api.getStatus()
+    const status = await apiClient.getStatus()
     return { status }
   },
   component: Outlet,

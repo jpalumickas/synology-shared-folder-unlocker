@@ -9,7 +9,7 @@ import {
 } from '@synology-shared-folder-unlocker/theme'
 import { Shield } from 'lucide-react'
 import { useRouter, useNavigate } from '@tanstack/react-router'
-import { api } from '../lib/api'
+import { apiClient } from '../services/apiClient'
 import { useAppForm } from '../hooks/form/useForm'
 
 export function InitPage() {
@@ -36,7 +36,7 @@ export function InitPage() {
     onSubmit: async ({ value }) => {
       setSubmitError('')
       try {
-        await api.init(value.password)
+        await apiClient.init(value.password)
         await router.invalidate()
         await navigate({ to: '/' })
       } catch (err) {

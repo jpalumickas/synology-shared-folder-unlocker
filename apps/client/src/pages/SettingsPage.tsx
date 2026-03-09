@@ -1,4 +1,4 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import { z } from 'zod'
 import {
   Card,
@@ -9,13 +9,14 @@ import {
   Separator,
 } from '@synology-shared-folder-unlocker/theme'
 import { Clock, Shield } from 'lucide-react'
-import { api } from '../lib/api'
 import { useAppForm } from '../hooks/form/useForm'
 import { Navbar } from '../components/Navbar'
+import { useSettings, useUpdateSettings, useChangePassword } from '../hooks/api'
 
 function PollingForm({ initialInterval }: { initialInterval: number }) {
   const [submitError, setSubmitError] = useState('')
   const [saved, setSaved] = useState(false)
+  const updateSettings = useUpdateSettings()
 
   const form = useAppForm({
     defaultValues: {
@@ -30,7 +31,9 @@ function PollingForm({ initialInterval }: { initialInterval: number }) {
       setSubmitError('')
       setSaved(false)
       try {
-        await api.updateSettings({ pollingInterval: value.interval })
+        await updateSettings.mutateAsync({
+          pollingInterval: value.interval,
+        })
         setSaved(true)
       } catch (err) {
         setSubmitError(err instanceof Error ? err.message : 'Failed to save')
@@ -75,6 +78,7 @@ function PollingForm({ initialInterval }: { initialInterval: number }) {
 function ChangePasswordForm() {
   const [submitError, setSubmitError] = useState('')
   const [saved, setSaved] = useState(false)
+  const changePassword = useChangePassword()
 
   const form = useAppForm({
     defaultValues: {
@@ -100,7 +104,10 @@ function ChangePasswordForm() {
       setSubmitError('')
       setSaved(false)
       try {
-        await api.changePassword(value.currentPassword, value.newPassword)
+        await changePassword.mutateAsync({
+          currentPassword: value.currentPassword,
+          newPassword: value.newPassword,
+        })
         setSaved(true)
         form.reset()
       } catch (err) {
@@ -174,11 +181,7 @@ function ChangePasswordForm() {
 }
 
 export function SettingsPage() {
-  const [pollingInterval, setPollingInterval] = useState<number | null>(null)
-
-  useEffect(() => {
-    api.getSettings().then((s) => setPollingInterval(s.pollingInterval))
-  }, [])
+  const { data: settings, isLoading } = useSettings()
 
   return (
     <div className="min-h-screen bg-background">
@@ -201,11 +204,11 @@ export function SettingsPage() {
             </div>
           </CardHeader>
           <CardContent>
-            {pollingInterval !== null ? (
-              <PollingForm initialInterval={pollingInterval} />
-            ) : (
+            {isLoading ? (
               <p className="text-sm text-muted-foreground">Loading...</p>
-            )}
+            ) : settings ? (
+              <PollingForm initialInterval={settings.pollingInterval} />
+            ) : null}
           </CardContent>
         </Card>
 
