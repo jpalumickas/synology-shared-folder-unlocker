@@ -15,9 +15,9 @@
   },
   "devDependencies": {
     "@vitest/coverage-v8": "^4.0.18",
-    "concurrently": "^9.1.0",
+    "concurrently": "^9.2.1",
     "prettier": "^3.8.1",
-    "typescript": "^5.7.0",
+    "typescript": "^5.9.3",
     "vitest": "^4.0.18"
   },
   "pnpm": {
