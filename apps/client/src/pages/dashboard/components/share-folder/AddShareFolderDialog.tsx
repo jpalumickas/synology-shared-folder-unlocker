@@ -5,15 +5,12 @@ import {
   DialogTitle,
 } from '@synology-shared-folder-unlocker/theme'
 import { useAddShareFolder } from '../../../../hooks/api'
+import { useAddShareFolderDialog } from '../../hooks/useAddShareFolderDialog'
 import { ShareFolderForm } from './ShareFolderForm'
 
-export function AddShareFolderDialog({
-  nasId,
-  onClose,
-}: {
-  nasId: string | null
-  onClose: () => void
-}) {
+export function AddShareFolderDialog() {
+  const nasId = useAddShareFolderDialog((s) => s.nasId)
+  const close = useAddShareFolderDialog((s) => s.close)
   const { addShareFolder } = useAddShareFolder()
 
   return (
@@ -21,7 +18,7 @@ export function AddShareFolderDialog({
       open={!!nasId}
       onOpenChange={(open) => {
         if (!open) {
-          onClose()
+          close()
         }
       }}
     >
@@ -36,9 +33,9 @@ export function AddShareFolderDialog({
             }
 
             await addShareFolder({ nasId, data })
-            onClose()
+            close()
           }}
-          onCancel={onClose}
+          onCancel={close}
         />
       </DialogContent>
     </Dialog>

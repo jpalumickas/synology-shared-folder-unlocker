@@ -1,23 +1,13 @@
 import { Button } from '@synology-shared-folder-unlocker/theme'
 import { Plus } from 'lucide-react'
-import type { NasDevice } from '@synology-shared-folder-unlocker/config'
 import { useNasList } from '../../../../hooks/api'
+import { useAddNasDialog } from '../../hooks/useAddNasDialog'
 import { NasCard } from './NasCard'
 import { NasEmptyState } from './NasEmptyState'
-import type { EditingShareFolder } from '../../types'
 
-export function NasList({
-  onAddNas,
-  onEditNas,
-  onAddShareFolder,
-  onEditShareFolder,
-}: {
-  onAddNas: () => void
-  onEditNas: (nas: NasDevice) => void
-  onAddShareFolder: (nasId: string) => void
-  onEditShareFolder: (editing: EditingShareFolder) => void
-}) {
+export function NasList() {
   const { nasList, isLoading } = useNasList()
+  const openAddNas = useAddNasDialog((s) => s.open)
 
   if (isLoading) {
     return (
@@ -34,24 +24,18 @@ export function NasList({
     <>
       <div className="flex items-center justify-between mb-4">
         <h2 className="text-lg font-semibold">NAS Devices</h2>
-        <Button size="sm" onClick={onAddNas}>
+        <Button size="sm" onClick={openAddNas}>
           <Plus className="h-4 w-4" />
           Add NAS
         </Button>
       </div>
 
       {nasList.length === 0 ? (
-        <NasEmptyState onAddNas={onAddNas} />
+        <NasEmptyState />
       ) : (
         <div className="space-y-4">
           {nasList.map((nas) => (
-            <NasCard
-              key={nas.id}
-              nas={nas}
-              onEdit={() => onEditNas(nas)}
-              onAddShareFolder={() => onAddShareFolder(nas.id)}
-              onEditShareFolder={onEditShareFolder}
-            />
+            <NasCard key={nas.id} nas={nas} />
           ))}
         </div>
       )}

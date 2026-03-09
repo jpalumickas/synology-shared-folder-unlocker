@@ -4,8 +4,11 @@ import {
   CardContent,
 } from '@synology-shared-folder-unlocker/theme'
 import { Plus, Server } from 'lucide-react'
+import { useAddNasDialog } from '../../hooks/useAddNasDialog'
 
-export function NasEmptyState({ onAddNas }: { onAddNas: () => void }) {
+export function NasEmptyState() {
+  const openAddNas = useAddNasDialog((s) => s.open)
+
   return (
     <Card className="border-dashed">
       <CardContent className="flex flex-col items-center justify-center py-12 text-center">
@@ -16,7 +19,7 @@ export function NasEmptyState({ onAddNas }: { onAddNas: () => void }) {
         <p className="text-sm text-muted-foreground mb-4">
           Add a NAS device to get started.
         </p>
-        <Button onClick={onAddNas}>
+        <Button onClick={openAddNas}>
           <Plus className="h-4 w-4" />
           Add NAS Device
         </Button>

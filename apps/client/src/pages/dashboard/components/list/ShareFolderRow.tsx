@@ -6,22 +6,22 @@ import {
   useDeleteShareFolder,
 } from '../../../../hooks/api'
 import { useShareFolderStatus } from '../../hooks/useShareFolderStatus'
+import { useEditShareFolderDialog } from '../../hooks/useEditShareFolderDialog'
 import { StatusBadge } from '../StatusBadge'
 
 export function ShareFolderRow({
   nasId,
   shareFolder,
   showSeparator,
-  onEdit,
 }: {
   nasId: string
   shareFolder: EncryptedShareFolder
   showSeparator: boolean
-  onEdit: () => void
 }) {
   const status = useShareFolderStatus(nasId, shareFolder.id)
   const { unlockShareFolder } = useUnlockShareFolder()
   const { deleteShareFolder } = useDeleteShareFolder()
+  const openEditShareFolder = useEditShareFolderDialog((s) => s.open)
 
   const handleDelete = async () => {
     if (!confirm('Delete this share folder?')) {
@@ -66,7 +66,11 @@ export function ShareFolderRow({
               Unlock
             </Button>
           )}
-          <Button variant="ghost" size="icon-xs" onClick={onEdit}>
+          <Button
+            variant="ghost"
+            size="icon-xs"
+            onClick={() => openEditShareFolder({ nasId, shareFolder })}
+          >
             <Pencil className="h-3 w-3" />
           </Button>
           <Button

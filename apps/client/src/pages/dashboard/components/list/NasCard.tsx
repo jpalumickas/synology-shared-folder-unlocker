@@ -11,21 +11,14 @@ import {
 import { FolderLock, Pencil, Server, Trash2 } from 'lucide-react'
 import type { NasDevice } from '@synology-shared-folder-unlocker/config'
 import { useDeleteNas } from '../../../../hooks/api'
+import { useEditNasDialog } from '../../hooks/useEditNasDialog'
+import { useAddShareFolderDialog } from '../../hooks/useAddShareFolderDialog'
 import { ShareFolderRow } from './ShareFolderRow'
-import type { EditingShareFolder } from '../../types'
 
-export function NasCard({
-  nas,
-  onEdit,
-  onAddShareFolder,
-  onEditShareFolder,
-}: {
-  nas: NasDevice
-  onEdit: () => void
-  onAddShareFolder: () => void
-  onEditShareFolder: (editing: EditingShareFolder) => void
-}) {
+export function NasCard({ nas }: { nas: NasDevice }) {
   const { deleteNas } = useDeleteNas()
+  const openEditNas = useEditNasDialog((s) => s.open)
+  const openAddShareFolder = useAddShareFolderDialog((s) => s.open)
 
   const handleDelete = async () => {
     if (!confirm('Delete this NAS device and all its share folders?')) {
@@ -51,11 +44,19 @@ export function NasCard({
         </div>
         <CardAction>
           <div className="flex gap-1">
-            <Button variant="outline" size="sm" onClick={onAddShareFolder}>
+            <Button
+              variant="outline"
+              size="sm"
+              onClick={() => openAddShareFolder(nas.id)}
+            >
               <FolderLock className="h-3.5 w-3.5" />
               Add Folder
             </Button>
-            <Button variant="ghost" size="icon-sm" onClick={onEdit}>
+            <Button
+              variant="ghost"
+              size="icon-sm"
+              onClick={() => openEditNas(nas)}
+            >
               <Pencil className="h-3.5 w-3.5" />
             </Button>
             <Button
@@ -85,7 +86,6 @@ export function NasCard({
                 nasId={nas.id}
                 shareFolder={shareFolder}
                 showSeparator={index > 0}
-                onEdit={() => onEditShareFolder({ nasId: nas.id, shareFolder })}
               />
             ))}
           </div>

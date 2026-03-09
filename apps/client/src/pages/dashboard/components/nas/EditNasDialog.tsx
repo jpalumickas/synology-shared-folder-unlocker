@@ -4,17 +4,13 @@ import {
   DialogHeader,
   DialogTitle,
 } from '@synology-shared-folder-unlocker/theme'
-import type { NasDevice } from '@synology-shared-folder-unlocker/config'
 import { useUpdateNas } from '../../../../hooks/api'
+import { useEditNasDialog } from '../../hooks/useEditNasDialog'
 import { NasForm } from './NasForm'
 
-export function EditNasDialog({
-  nas,
-  onClose,
-}: {
-  nas: NasDevice | null
-  onClose: () => void
-}) {
+export function EditNasDialog() {
+  const nas = useEditNasDialog((s) => s.nas)
+  const close = useEditNasDialog((s) => s.close)
   const { updateNas } = useUpdateNas()
 
   return (
@@ -22,7 +18,7 @@ export function EditNasDialog({
       open={!!nas}
       onOpenChange={(open) => {
         if (!open) {
-          onClose()
+          close()
         }
       }}
     >
@@ -35,9 +31,9 @@ export function EditNasDialog({
             initial={nas}
             onSubmit={async (data) => {
               await updateNas({ id: nas.id, data })
-              onClose()
+              close()
             }}
-            onCancel={onClose}
+            onCancel={close}
           />
         )}
       </DialogContent>

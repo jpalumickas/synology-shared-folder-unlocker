@@ -5,16 +5,12 @@ import {
   DialogTitle,
 } from '@synology-shared-folder-unlocker/theme'
 import { useUpdateShareFolder } from '../../../../hooks/api'
+import { useEditShareFolderDialog } from '../../hooks/useEditShareFolderDialog'
 import { ShareFolderForm } from './ShareFolderForm'
-import type { EditingShareFolder } from '../../types'
 
-export function EditShareFolderDialog({
-  editing,
-  onClose,
-}: {
-  editing: EditingShareFolder | null
-  onClose: () => void
-}) {
+export function EditShareFolderDialog() {
+  const editing = useEditShareFolderDialog((s) => s.editing)
+  const close = useEditShareFolderDialog((s) => s.close)
   const { updateShareFolder } = useUpdateShareFolder()
 
   return (
@@ -22,7 +18,7 @@ export function EditShareFolderDialog({
       open={!!editing}
       onOpenChange={(open) => {
         if (!open) {
-          onClose()
+          close()
         }
       }}
     >
@@ -39,9 +35,9 @@ export function EditShareFolderDialog({
                 shareFolderId: editing.shareFolder.id,
                 data,
               })
-              onClose()
+              close()
             }}
-            onCancel={onClose}
+            onCancel={close}
           />
         )}
       </DialogContent>
