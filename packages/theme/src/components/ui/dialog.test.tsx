@@ -16,6 +16,22 @@ import {
 
 // @vitest-environment jsdom
 
+function TestDialog({
+  children,
+  ...contentProps
+}: React.ComponentProps<typeof DialogContent>) {
+  return (
+    <Dialog>
+      <DialogTrigger>Open</DialogTrigger>
+      <DialogContent {...contentProps}>
+        <DialogTitle>Test Dialog</DialogTitle>
+        <DialogDescription>Test description</DialogDescription>
+        {children}
+      </DialogContent>
+    </Dialog>
+  )
+}
+
 describe('Dialog', () => {
   it('renders trigger and opens content on click', async () => {
     const user = userEvent.setup()
@@ -71,12 +87,7 @@ describe('Dialog', () => {
 
   it('shows close button by default', async () => {
     const user = userEvent.setup()
-    render(
-      <Dialog>
-        <DialogTrigger>Open</DialogTrigger>
-        <DialogContent>Content</DialogContent>
-      </Dialog>
-    )
+    render(<TestDialog>Content</TestDialog>)
 
     await user.click(screen.getByText('Open'))
     expect(screen.getByText('Close')).toBeDefined()
@@ -84,12 +95,7 @@ describe('Dialog', () => {
 
   it('hides close button when showCloseButton is false', async () => {
     const user = userEvent.setup()
-    render(
-      <Dialog>
-        <DialogTrigger>Open</DialogTrigger>
-        <DialogContent showCloseButton={false}>Content</DialogContent>
-      </Dialog>
-    )
+    render(<TestDialog showCloseButton={false}>Content</TestDialog>)
 
     await user.click(screen.getByText('Open'))
     expect(screen.queryByText('Close')).toBeNull()
@@ -98,14 +104,11 @@ describe('Dialog', () => {
   it('renders DialogFooter with close button', async () => {
     const user = userEvent.setup()
     render(
-      <Dialog>
-        <DialogTrigger>Open</DialogTrigger>
-        <DialogContent showCloseButton={false}>
-          <DialogFooter showCloseButton>
-            <button>Save</button>
-          </DialogFooter>
-        </DialogContent>
-      </Dialog>
+      <TestDialog showCloseButton={false}>
+        <DialogFooter showCloseButton>
+          <button>Save</button>
+        </DialogFooter>
+      </TestDialog>
     )
 
     await user.click(screen.getByText('Open'))
@@ -115,12 +118,7 @@ describe('Dialog', () => {
 
   it('renders DialogOverlay with correct data-slot', async () => {
     const user = userEvent.setup()
-    render(
-      <Dialog>
-        <DialogTrigger>Open</DialogTrigger>
-        <DialogContent>Content</DialogContent>
-      </Dialog>
-    )
+    render(<TestDialog>Content</TestDialog>)
 
     await user.click(screen.getByText('Open'))
     expect(
@@ -130,12 +128,7 @@ describe('Dialog', () => {
 
   it('applies custom className to DialogContent', async () => {
     const user = userEvent.setup()
-    render(
-      <Dialog>
-        <DialogTrigger>Open</DialogTrigger>
-        <DialogContent className="custom-dialog">Content</DialogContent>
-      </Dialog>
-    )
+    render(<TestDialog className="custom-dialog">Content</TestDialog>)
 
     await user.click(screen.getByText('Open'))
     const content = document.querySelector('[data-slot="dialog-content"]')
@@ -188,12 +181,9 @@ describe('Dialog', () => {
   it('renders DialogClose with correct data-slot', async () => {
     const user = userEvent.setup()
     render(
-      <Dialog>
-        <DialogTrigger>Open</DialogTrigger>
-        <DialogContent showCloseButton={false}>
-          <DialogClose>Dismiss</DialogClose>
-        </DialogContent>
-      </Dialog>
+      <TestDialog showCloseButton={false}>
+        <DialogClose>Dismiss</DialogClose>
+      </TestDialog>
     )
 
     await user.click(screen.getByText('Open'))

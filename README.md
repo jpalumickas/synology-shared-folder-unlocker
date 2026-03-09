@@ -28,9 +28,9 @@ Synology encrypted shared folders lock themselves whenever the NAS restarts. You
 
 ```bash
 docker run -d \
-  --name synology-unlocker \
+  --name synology-shared-folder-unlocker \
   -p 3001:3001 \
-  -v synology-unlocker-data:/data \
+  -v synology-shared-folder-unlocker-data:/data \
   ghcr.io/jpalumickas/synology-shared-drives-unlocker:latest
 ```
 
@@ -40,17 +40,17 @@ Open `http://localhost:3001` in your browser.
 
 ```yaml
 services:
-  synology-unlocker:
+  synology-shared-folder-unlocker:
     image: ghcr.io/jpalumickas/synology-shared-drives-unlocker:latest
-    container_name: synology-unlocker
+    container_name: synology-shared-folder-unlocker
     ports:
       - '3001:3001'
     volumes:
-      - synology-unlocker-data:/data
+      - synology-shared-folder-unlocker-data:/data
     restart: unless-stopped
 
 volumes:
-  synology-unlocker-data:
+  synology-shared-folder-unlocker-data:
 ```
 
 ### Building the Image Locally

@@ -44,7 +44,7 @@ function encrypt(plaintext: string, password: string): EncryptedData {
   const verifyIv = randomBytes(IV_LENGTH)
   const verifyCipher = createCipheriv(ALGORITHM, key, verifyIv)
   const verifyEncrypted = Buffer.concat([
-    verifyCipher.update('synology-unlocker-verify', 'utf8'),
+    verifyCipher.update('synology-shared-folder-unlocker-verify', 'utf8'),
     verifyCipher.final(),
   ])
   const verifyTag = verifyCipher.getAuthTag()
@@ -119,7 +119,7 @@ export async function verifyConfigPassword(password: string): Promise<boolean> {
     const result =
       decipher.update(data).toString('utf8') + decipher.final('utf8')
 
-    return result === 'synology-unlocker-verify'
+    return result === 'synology-shared-folder-unlocker-verify'
   } catch {
     return false
   }
