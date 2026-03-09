@@ -54,7 +54,13 @@ export function NasForm({
       className="space-y-4"
     >
       <form.AppField name="name">
-        {(field) => <field.TextField label="Name" placeholder="My NAS" />}
+        {(field) => (
+          <field.TextField
+            label="Name"
+            placeholder="My NAS"
+            disablePasswordManager
+          />
+        )}
       </form.AppField>
 
       <form.AppField name="host">
