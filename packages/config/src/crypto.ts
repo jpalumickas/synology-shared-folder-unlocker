@@ -97,11 +97,14 @@ export async function saveConfig(
 ): Promise<void> {
   const dir = dirname(CONFIG_PATH)
   if (!existsSync(dir)) {
-    await mkdir(dir, { recursive: true })
+    await mkdir(dir, { recursive: true, mode: 0o700 })
   }
 
   const encrypted = await encrypt(JSON.stringify(config), password)
-  await writeFile(CONFIG_PATH, JSON.stringify(encrypted, null, 2), 'utf8')
+  await writeFile(CONFIG_PATH, JSON.stringify(encrypted, null, 2), {
+    encoding: 'utf8',
+    mode: 0o600,
+  })
 }
 
 export async function loadConfig(password: string): Promise<object> {
