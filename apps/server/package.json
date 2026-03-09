@@ -4,35 +4,22 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "concurrently -n server,client -c blue,green \"pnpm dev:server\" \"pnpm dev:client\"",
-    "dev:server": "tsx watch src/server/index.ts",
-    "dev:client": "vite",
-    "build": "vite build",
-    "start": "NODE_ENV=production tsx src/server/index.ts",
+    "dev": "tsx watch src/server/index.ts",
+    "build": "tsup",
+    "start": "NODE_ENV=production node dist/server/index.mjs",
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
     "@hono/node-server": "^1.14.0",
     "@synology-shared-folder-unlocker/config": "workspace:*",
-    "@synology-shared-folder-unlocker/theme": "workspace:*",
     "@synology-shared-folder-unlocker/unlocker": "workspace:*",
-    "@tanstack/react-form": "^1.28.4",
     "hono": "^4.7.0",
-    "lucide-react": "^0.577.0",
-    "react": "^19.0.0",
-    "react-dom": "^19.0.0",
-    "zod": "^4.3.6"
+    "ssh2": "^1.16.0"
   },
   "devDependencies": {
-    "@tailwindcss/vite": "^4.1.0",
     "@types/node": "^25.3.5",
-    "@types/react": "^19.0.0",
-    "@types/react-dom": "^19.0.0",
-    "@vitejs/plugin-react": "^4.3.0",
-    "concurrently": "^9.1.0",
-    "tailwindcss": "^4.1.0",
+    "tsup": "^8.5.1",
     "tsx": "^4.19.0",
-    "typescript": "^5.7.0",
-    "vite": "^6.1.0"
+    "typescript": "^5.7.0"
   }
 }
