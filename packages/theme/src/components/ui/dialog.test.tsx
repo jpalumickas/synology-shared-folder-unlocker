@@ -1,3 +1,4 @@
+import { type ComponentProps } from 'react'
 import { describe, it, expect } from 'vitest'
 import { render, screen } from '@testing-library/react'
 import userEvent from '@testing-library/user-event'
@@ -19,7 +20,7 @@ import {
 function TestDialog({
   children,
   ...contentProps
-}: React.ComponentProps<typeof DialogContent>) {
+}: ComponentProps<typeof DialogContent>) {
   return (
     <Dialog>
       <DialogTrigger>Open</DialogTrigger>

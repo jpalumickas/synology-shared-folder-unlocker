@@ -4,11 +4,12 @@ import {
   TooltipContent,
   TooltipTrigger,
 } from '@synology-shared-folder-unlocker/theme'
+import { type ReactNode } from 'react'
 import { LogOut, Server, Settings } from 'lucide-react'
 import { Link, useNavigate, useRouter } from '@tanstack/react-router'
 import { api } from '../lib/api'
 
-export function Navbar({ children }: { children?: React.ReactNode }) {
+export function Navbar({ children }: { children?: ReactNode }) {
   const router = useRouter()
   const navigate = useNavigate()
 
