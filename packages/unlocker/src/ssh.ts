@@ -17,6 +17,10 @@ export interface HostKeyInfo {
   fingerprint: string
 }
 
+function hashHostKey(key: Buffer): string {
+  return createHash('sha256').update(key).digest('base64').replace(/=+$/, '')
+}
+
 function shellEscape(str: string): string {
   return "'" + str.replace(/'/g, "'\\''") + "'"
 }
@@ -78,8 +82,7 @@ function executeCommand(
       algorithms: {
         serverHostKey: [nas.hostKeyType as ServerHostKeyAlgorithm],
       },
-      hostHash: 'sha256',
-      hostVerifier: (hash: string) => hash === nas.hostFingerprint,
+      hostVerifier: (key: Buffer) => hashHostKey(key) === nas.hostFingerprint,
     })
   })
 }
@@ -103,7 +106,7 @@ export function fetchHostKey(host: string, port: number): Promise<HostKeyInfo> {
         // SSH wire format: 4-byte big-endian length + key type string
         const typeLen = key.readUInt32BE(0)
         const keyType = key.subarray(4, 4 + typeLen).toString('ascii')
-        const fingerprint = createHash('sha256').update(key).digest('hex')
+        const fingerprint = hashHostKey(key)
 
         conn.end()
         resolve({ type: keyType, fingerprint })

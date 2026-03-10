@@ -76,12 +76,6 @@ export function NasForm({
         {(field) => <field.NumberField label="SSH Port" />}
       </form.AppField>
 
-      {initial?.hostFingerprint && (
-        <p className="font-mono text-xs text-muted-foreground break-all">
-          {initial.hostKeyType} SHA256:{initial.hostFingerprint}
-        </p>
-      )}
-
       {!isEditing && (
         <>
           <form.AppField name="username">
