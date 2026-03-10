@@ -89,14 +89,6 @@ const rateLimitAuth = createMiddleware(async (c, next) => {
 const app = new Hono()
 const api = new Hono()
 
-const requireUnlocked = createMiddleware(async (c, next) => {
-  if (!store.isUnlocked) {
-    return c.json({ error: 'App is locked' }, 403)
-  }
-
-  await next()
-})
-
 const requireSession = createMiddleware(async (c, next) => {
   if (!store.isUnlocked) {
     return c.json({ error: 'App is locked' }, 403)
@@ -171,13 +163,11 @@ api.post('/logout', (c) => {
   return c.json({ success: true })
 })
 
-// --- Routes requiring app unlocked (no session needed) ---
-
-api.get('/share-folders/status', requireUnlocked, (c) => {
+api.get('/share-folders/status', requireSession, (c) => {
   return c.json(store.getShareFolderStatuses())
 })
 
-api.post('/share-folders/poll', requireUnlocked, async (c) => {
+api.post('/share-folders/poll', requireSession, async (c) => {
   await pollOnce()
   return c.json({ success: true, statuses: store.getShareFolderStatuses() })
 })
