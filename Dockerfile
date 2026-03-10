@@ -31,13 +31,11 @@ RUN mkdir -p /prod/apps/server /prod/packages/config /prod/packages/unlocker && 
 # --- Runner ---
 FROM node:25-alpine
 
-ARG PUID=1000
-ARG PGID=1000
-
-RUN deluser --remove-home node 2>/dev/null; \
+RUN apk add --no-cache su-exec && \
+    deluser --remove-home node 2>/dev/null; \
     delgroup node 2>/dev/null; \
-    addgroup -g "${PGID}" app && \
-    adduser -u "${PUID}" -G app -s /bin/sh -D app
+    addgroup -g 1000 app && \
+    adduser -u 1000 -G app -s /bin/sh -D app
 
 WORKDIR /app
 
@@ -53,6 +51,8 @@ COPY --from=builder /app/apps/server/dist/server ./apps/server/dist/server
 # Copy built client into the location the server expects
 COPY --from=builder /app/apps/client/dist ./apps/server/dist/client
 
+COPY entrypoint.sh /entrypoint.sh
+
 ENV NODE_ENV=production
 ENV DATA_PATH=/data
 ENV PORT=3001
@@ -63,8 +63,7 @@ RUN mkdir -p /data && chown app:app /data
 VOLUME /data
 EXPOSE 3001
 
-USER app
-
 WORKDIR /app/apps/server
 
+ENTRYPOINT ["/entrypoint.sh"]
 CMD ["node", "dist/server/index.mjs"]
