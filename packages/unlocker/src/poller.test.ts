@@ -20,6 +20,7 @@ const config: AppConfig = {
       port: 22,
       username: 'admin',
       password: 'pw',
+      hostKeyType: 'ssh-ed25519',
       hostFingerprint: 'fp-1',
       shareFolders: [
         { id: 'sf-1', name: 'photos', password: 'enc1' },

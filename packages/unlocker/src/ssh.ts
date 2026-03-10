@@ -1,4 +1,6 @@
+import { createHash } from 'node:crypto'
 import { Client } from 'ssh2'
+import type { ServerHostKeyAlgorithm } from 'ssh2'
 import type {
   NasDevice,
   EncryptedShareFolder,
@@ -8,6 +10,11 @@ interface CommandResult {
   stdout: string
   stderr: string
   code: number
+}
+
+export interface HostKeyInfo {
+  type: string
+  fingerprint: string
 }
 
 function shellEscape(str: string): string {
@@ -68,16 +75,16 @@ function executeCommand(
       username: nas.username,
       password: nas.password,
       readyTimeout: 10_000,
+      algorithms: {
+        serverHostKey: [nas.hostKeyType as ServerHostKeyAlgorithm],
+      },
       hostHash: 'sha256',
       hostVerifier: (hash: string) => hash === nas.hostFingerprint,
     })
   })
 }
 
-export function fetchHostFingerprint(
-  host: string,
-  port: number
-): Promise<string> {
+export function fetchHostKey(host: string, port: number): Promise<HostKeyInfo> {
   return new Promise((resolve, reject) => {
     const conn = new Client()
     const timeout = setTimeout(() => {
@@ -90,11 +97,16 @@ export function fetchHostFingerprint(
       port,
       username: 'root',
       readyTimeout: 10_000,
-      hostHash: 'sha256',
-      hostVerifier: (hash: string) => {
+      hostVerifier: (key: Buffer) => {
         clearTimeout(timeout)
+
+        // SSH wire format: 4-byte big-endian length + key type string
+        const typeLen = key.readUInt32BE(0)
+        const keyType = key.subarray(4, 4 + typeLen).toString('ascii')
+        const fingerprint = createHash('sha256').update(key).digest('hex')
+
         conn.end()
-        resolve(hash)
+        resolve({ type: keyType, fingerprint })
         return false
       },
     })

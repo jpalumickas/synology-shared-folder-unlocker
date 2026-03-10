@@ -78,7 +78,7 @@ export function NasForm({
 
       {initial?.hostFingerprint && (
         <p className="font-mono text-xs text-muted-foreground break-all">
-          SHA256:{initial.hostFingerprint}
+          {initial.hostKeyType} SHA256:{initial.hostFingerprint}
         </p>
       )}
 

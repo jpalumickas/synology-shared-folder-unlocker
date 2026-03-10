@@ -11,7 +11,7 @@ export type NasDeviceInfo = Omit<NasDevice, 'password'> & {
 
 export type AddNasParams = Omit<
   NasDevice,
-  'id' | 'shareFolders' | 'hostFingerprint'
+  'id' | 'shareFolders' | 'hostKeyType' | 'hostFingerprint'
 >
 
 export type UpdateNasCredentials = Pick<NasDevice, 'username' | 'password'>

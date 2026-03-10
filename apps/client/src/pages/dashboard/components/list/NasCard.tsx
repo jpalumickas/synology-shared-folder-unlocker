@@ -48,6 +48,11 @@ export function NasCard({ nas }: { nas: NasDeviceInfo }) {
             <CardTitle className="text-base">{nas.name}</CardTitle>
             <p className="text-sm text-muted-foreground">
               {nas.username}@{nas.host}:{nas.port}
+              {nas.hostKeyType && (
+                <span className="ml-2 font-mono text-xs">
+                  {nas.hostKeyType}
+                </span>
+              )}
             </p>
           </div>
         </div>

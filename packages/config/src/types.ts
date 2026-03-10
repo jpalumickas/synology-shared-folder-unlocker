@@ -5,6 +5,7 @@ export interface NasDevice {
   port: number
   username: string
   password: string
+  hostKeyType: string
   hostFingerprint: string
   shareFolders: EncryptedShareFolder[]
 }

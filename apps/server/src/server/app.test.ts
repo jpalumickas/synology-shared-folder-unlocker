@@ -19,7 +19,10 @@ vi.mock('@synology-shared-folder-unlocker/unlocker', () => ({
   restartPoller: vi.fn(),
   pollOnce: vi.fn(),
   unlockShareFolder: vi.fn(),
-  fetchHostFingerprint: vi.fn().mockResolvedValue('test-fingerprint'),
+  fetchHostKey: vi.fn().mockResolvedValue({
+    type: 'ssh-ed25519',
+    fingerprint: 'test-fingerprint',
+  }),
 }))
 
 vi.mock('@synology-shared-folder-unlocker/config', async (importOriginal) => {
@@ -48,6 +51,7 @@ function makeNas(overrides?: Partial<NasDevice>): NasDevice {
     port: 22,
     username: 'admin',
     password: 'secret-ssh-password',
+    hostKeyType: 'ssh-ed25519',
     hostFingerprint: 'fp-abc',
     shareFolders: [],
     ...overrides,

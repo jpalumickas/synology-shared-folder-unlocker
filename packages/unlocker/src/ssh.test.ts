@@ -73,6 +73,7 @@ const nas: NasDevice = {
   port: 22,
   username: 'admin',
   password: 'naspass',
+  hostKeyType: 'ssh-ed25519',
   hostFingerprint: 'fp-1',
   shareFolders: [],
 }
