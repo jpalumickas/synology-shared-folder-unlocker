@@ -1,4 +1,4 @@
-# Synology Shared Drives Unlocker
+# Synology Shared Folder Unlocker
 
 A self-hosted web application that automatically unlocks encrypted shared folders on Synology NAS devices. It connects to your NAS over SSH, monitors the lock status of encrypted folders, and unlocks them automatically when they are detected as locked (e.g., after a NAS reboot).
 
@@ -31,7 +31,7 @@ docker run -d \
   --name synology-shared-folder-unlocker \
   -p 3001:3001 \
   -v synology-shared-folder-unlocker-data:/data \
-  ghcr.io/jpalumickas/synology-shared-drives-unlocker:latest
+  ghcr.io/jpalumickas/synology-shared-folder-unlocker:latest
 ```
 
 Open `http://localhost:3001` in your browser.
@@ -41,12 +41,15 @@ Open `http://localhost:3001` in your browser.
 ```yaml
 services:
   synology-shared-folder-unlocker:
-    image: ghcr.io/jpalumickas/synology-shared-drives-unlocker:latest
+    image: ghcr.io/jpalumickas/synology-shared-folder-unlocker:latest
     container_name: synology-shared-folder-unlocker
     ports:
       - '3001:3001'
     volumes:
       - synology-shared-folder-unlocker-data:/data
+    environment:
+      - PUID=1000
+      - PGID=1000
     restart: unless-stopped
 
 volumes:
@@ -56,13 +59,7 @@ volumes:
 ### Building the Image Locally
 
 ```bash
-docker build -t synology-shared-drives-unlocker .
-```
-
-Optional build arguments for the container user:
-
-```bash
-docker build --build-arg PUID=1000 --build-arg PGID=1000 -t synology-shared-drives-unlocker .
+docker build -t synology-shared-folder-unlocker .
 ```
 
 ## Configuration
@@ -75,6 +72,8 @@ All configuration is managed through the web UI and stored in an encrypted file.
 | ----------- | ----------------------------------------------------------------------- | --------------------------------------------------- |
 | `PORT`      | `3001`                                                                  | Port the server listens on                          |
 | `DATA_PATH` | `/data` (Docker) or `~/.config/synology-shared-folder-unlocker` (local) | Directory where the encrypted config file is stored |
+| `PUID`      | `1000`                                                                  | User ID for the container process (Docker only)     |
+| `PGID`      | `1000`                                                                  | Group ID for the container process (Docker only)    |
 
 ### First-Time Setup
 
