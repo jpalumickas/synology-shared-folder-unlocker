@@ -7,14 +7,17 @@ import {
 import { type ReactNode } from 'react'
 import { LogOut, Server, Settings } from 'lucide-react'
 import { Link, useNavigate, useRouter } from '@tanstack/react-router'
+import { useQueryClient } from '@tanstack/react-query'
 import { apiClient } from '../services/apiClient'
 
 export function Navbar({ children }: { children?: ReactNode }) {
   const router = useRouter()
   const navigate = useNavigate()
+  const queryClient = useQueryClient()
 
   const handleLogout = async () => {
     await apiClient.logout()
+    queryClient.clear()
     await router.invalidate()
     await navigate({ to: '/' })
   }
