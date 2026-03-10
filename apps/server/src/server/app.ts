@@ -150,6 +150,7 @@ api.post('/unlock', rateLimitAuth, async (c) => {
     const sessionToken = store.unlock(config, password)
     setSessionCookie(c, sessionToken)
 
+    await pollOnce()
     startPoller()
     return c.json({ success: true })
   } catch {

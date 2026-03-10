@@ -59,7 +59,6 @@ export function startPoller(): void {
     `[Poller] Starting with interval ${config.pollingInterval || 120}s`
   )
 
-  pollOnce()
   pollInterval = setInterval(pollOnce, intervalMs)
 }
 

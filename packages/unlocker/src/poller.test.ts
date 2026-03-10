@@ -160,24 +160,20 @@ describe('startPoller / stopPoller / restartPoller', () => {
     expect(mockCheckShareFolderStatus).not.toHaveBeenCalled()
   })
 
-  it('runs pollOnce immediately on start', async () => {
+  it('does not poll immediately on start', () => {
     store.unlock(config, 'pw')
     mockCheckShareFolderStatus.mockResolvedValue('unlocked')
 
     startPoller()
-    // Flush the initial pollOnce microtasks
-    await vi.advanceTimersByTimeAsync(0)
 
-    expect(mockCheckShareFolderStatus).toHaveBeenCalledTimes(2)
+    expect(mockCheckShareFolderStatus).not.toHaveBeenCalled()
   })
 
-  it('runs pollOnce again after interval', async () => {
+  it('polls after interval', async () => {
     store.unlock(config, 'pw')
     mockCheckShareFolderStatus.mockResolvedValue('unlocked')
 
     startPoller()
-    await vi.advanceTimersByTimeAsync(0)
-    mockCheckShareFolderStatus.mockClear()
 
     await vi.advanceTimersByTimeAsync(60_000)
 
@@ -189,8 +185,6 @@ describe('startPoller / stopPoller / restartPoller', () => {
     mockCheckShareFolderStatus.mockResolvedValue('unlocked')
 
     startPoller()
-    await vi.advanceTimersByTimeAsync(0)
-    mockCheckShareFolderStatus.mockClear()
 
     stopPoller()
     await vi.advanceTimersByTimeAsync(120_000)
@@ -198,17 +192,20 @@ describe('startPoller / stopPoller / restartPoller', () => {
     expect(mockCheckShareFolderStatus).not.toHaveBeenCalled()
   })
 
-  it('restartPoller stops and starts again', async () => {
+  it('restartPoller stops and starts new interval', async () => {
     store.unlock(config, 'pw')
     mockCheckShareFolderStatus.mockResolvedValue('unlocked')
 
     startPoller()
-    await vi.advanceTimersByTimeAsync(0)
-    mockCheckShareFolderStatus.mockClear()
+    await vi.advanceTimersByTimeAsync(30_000)
 
     restartPoller()
-    await vi.advanceTimersByTimeAsync(0)
+    // Should not fire at old 60s mark (30s into new interval)
+    await vi.advanceTimersByTimeAsync(30_000)
+    expect(mockCheckShareFolderStatus).not.toHaveBeenCalled()
 
+    // Should fire at 60s into new interval
+    await vi.advanceTimersByTimeAsync(30_000)
     expect(mockCheckShareFolderStatus).toHaveBeenCalledTimes(2)
   })
 
@@ -218,8 +215,6 @@ describe('startPoller / stopPoller / restartPoller', () => {
     mockCheckShareFolderStatus.mockResolvedValue('unlocked')
 
     startPoller()
-    await vi.advanceTimersByTimeAsync(0)
-    mockCheckShareFolderStatus.mockClear()
 
     // Advance 30s - should fire
     await vi.advanceTimersByTimeAsync(30_000)
@@ -232,8 +227,6 @@ describe('startPoller / stopPoller / restartPoller', () => {
     mockCheckShareFolderStatus.mockResolvedValue('unlocked')
 
     startPoller()
-    await vi.advanceTimersByTimeAsync(0)
-    mockCheckShareFolderStatus.mockClear()
 
     // Advance 60s - should NOT fire yet (120s default)
     await vi.advanceTimersByTimeAsync(60_000)
@@ -254,13 +247,9 @@ describe('startPoller / stopPoller / restartPoller', () => {
     mockCheckShareFolderStatus.mockResolvedValue('unlocked')
 
     startPoller()
-    await vi.advanceTimersByTimeAsync(0)
-    mockCheckShareFolderStatus.mockClear()
 
     // Start again - should stop previous, start new
     startPoller()
-    await vi.advanceTimersByTimeAsync(0)
-    mockCheckShareFolderStatus.mockClear()
 
     // Advance one interval - should only fire once (not twice from two intervals)
     await vi.advanceTimersByTimeAsync(60_000)
