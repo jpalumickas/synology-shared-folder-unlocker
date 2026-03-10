@@ -34,10 +34,26 @@ function setSessionCookie(c: Context, token: string) {
   })
 }
 
-function stripPassword(nas: NasDevice): Omit<NasDevice, 'password'> {
-  const { password, ...rest } = nas
+function stripShareFolderPassword(
+  sf: EncryptedShareFolder
+): Omit<EncryptedShareFolder, 'password'> {
+  const { password, ...rest } = sf
   void password
   return rest
+}
+
+function stripPassword(nas: NasDevice): Omit<
+  NasDevice,
+  'password' | 'shareFolders'
+> & {
+  shareFolders: Omit<EncryptedShareFolder, 'password'>[]
+} {
+  const { password, ...rest } = nas
+  void password
+  return {
+    ...rest,
+    shareFolders: rest.shareFolders.map(stripShareFolderPassword),
+  }
 }
 
 // Rate limiting for auth endpoints to prevent brute-force and CPU exhaustion
@@ -365,7 +381,7 @@ api.post('/nas/:nasId/share-folders', requireSession, async (c) => {
   await saveConfig(config, password)
   restartPoller()
 
-  return c.json(shareFolder, 201)
+  return c.json(stripShareFolderPassword(shareFolder), 201)
 })
 
 api.put(
@@ -375,19 +391,12 @@ api.put(
     const { nasId, shareFolderId } = c.req.param()
     const body = await c.req.json<Record<string, unknown>>()
 
-    if (
-      body.name !== undefined &&
-      (typeof body.name !== 'string' || body.name.length === 0)
-    ) {
-      return c.json({ error: 'Name must be a non-empty string' }, 400)
-    }
-
-    if (body.password !== undefined && typeof body.password !== 'string') {
-      return c.json({ error: 'Password must be a string' }, 400)
+    if (typeof body.password !== 'string' || body.password.length === 0) {
+      return c.json({ error: 'Password is required' }, 400)
     }
 
     const config = store.requireConfig()
-    const password = store.requireMasterPassword()
+    const masterPassword = store.requireMasterPassword()
 
     const nas = config.nasList.find((n) => n.id === nasId)
     if (!nas) {
@@ -399,18 +408,12 @@ api.put(
       return c.json({ error: 'Share folder not found' }, 404)
     }
 
-    if (typeof body.name === 'string') {
-      shareFolder.name = body.name
-    }
-
-    if (typeof body.password === 'string') {
-      shareFolder.password = body.password
-    }
+    shareFolder.password = body.password
 
     store.updateConfig(config)
-    await saveConfig(config, password)
+    await saveConfig(config, masterPassword)
 
-    return c.json(shareFolder)
+    return c.json(stripShareFolderPassword(shareFolder))
   }
 )
 

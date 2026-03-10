@@ -1,9 +1,9 @@
-import type { EncryptedShareFolder } from '@synology-shared-folder-unlocker/config'
 import type { ShareFolderStatus } from '@synology-shared-folder-unlocker/unlocker'
 import type {
   AddNasParams,
   AppStatus,
   NasDeviceInfo,
+  ShareFolderInfo,
   UpdateNasCredentials,
 } from '../types/apiClient'
 
@@ -65,24 +65,21 @@ export const apiClient = {
   deleteNas: (id: string) =>
     request<{ success: boolean }>(`/nas/${id}`, { method: 'DELETE' }),
 
-  addShareFolder: (nasId: string, data: Omit<EncryptedShareFolder, 'id'>) =>
-    request<EncryptedShareFolder>(`/nas/${nasId}/share-folders`, {
+  addShareFolder: (nasId: string, data: { name: string; password: string }) =>
+    request<ShareFolderInfo>(`/nas/${nasId}/share-folders`, {
       method: 'POST',
       body: JSON.stringify(data),
     }),
 
-  updateShareFolder: (
+  updateShareFolderPassword: (
     nasId: string,
     shareFolderId: string,
-    data: Partial<EncryptedShareFolder>
+    password: string
   ) =>
-    request<EncryptedShareFolder>(
-      `/nas/${nasId}/share-folders/${shareFolderId}`,
-      {
-        method: 'PUT',
-        body: JSON.stringify(data),
-      }
-    ),
+    request<ShareFolderInfo>(`/nas/${nasId}/share-folders/${shareFolderId}`, {
+      method: 'PUT',
+      body: JSON.stringify({ password }),
+    }),
 
   deleteShareFolder: (nasId: string, shareFolderId: string) =>
     request<{ success: boolean }>(

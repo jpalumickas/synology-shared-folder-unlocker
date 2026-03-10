@@ -9,8 +9,8 @@ import {
   DropdownMenuTrigger,
   Separator,
 } from '@synology-shared-folder-unlocker/theme'
-import { EllipsisVertical, Pencil, Trash2, Unlock } from 'lucide-react'
-import type { EncryptedShareFolder } from '@synology-shared-folder-unlocker/config'
+import { EllipsisVertical, KeyRound, Trash2, Unlock } from 'lucide-react'
+import type { ShareFolderInfo } from '../../../../types/apiClient'
 import {
   useUnlockShareFolder,
   useDeleteShareFolder,
@@ -25,7 +25,7 @@ export function ShareFolderRow({
   showSeparator,
 }: {
   nasId: string
-  shareFolder: EncryptedShareFolder
+  shareFolder: ShareFolderInfo
   showSeparator: boolean
 }) {
   const status = useShareFolderStatus(nasId, shareFolder.id)
@@ -79,8 +79,8 @@ export function ShareFolderRow({
               <DropdownMenuItem
                 onClick={() => openEditShareFolder({ nasId, shareFolder })}
               >
-                <Pencil className="h-3.5 w-3.5" />
-                Edit
+                <KeyRound className="h-3.5 w-3.5" />
+                Update Password
               </DropdownMenuItem>
               <DropdownMenuSeparator />
               <DropdownMenuItem

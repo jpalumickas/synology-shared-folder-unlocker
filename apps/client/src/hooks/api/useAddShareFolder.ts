@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { EncryptedShareFolder } from '@synology-shared-folder-unlocker/config'
 import { toast } from '@synology-shared-folder-unlocker/theme'
 import { apiClient } from '../../services/apiClient'
 import { queryKeys } from './queryKeys'
@@ -13,7 +12,7 @@ export function useAddShareFolder() {
       data,
     }: {
       nasId: string
-      data: Omit<EncryptedShareFolder, 'id'>
+      data: { name: string; password: string }
     }) => apiClient.addShareFolder(nasId, data),
     onSuccess: () => {
       toast.success('Share folder added')

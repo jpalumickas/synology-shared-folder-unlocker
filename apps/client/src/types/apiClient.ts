@@ -1,6 +1,13 @@
-import type { NasDevice } from '@synology-shared-folder-unlocker/config'
+import type {
+  EncryptedShareFolder,
+  NasDevice,
+} from '@synology-shared-folder-unlocker/config'
 
-export type NasDeviceInfo = Omit<NasDevice, 'password'>
+export type ShareFolderInfo = Omit<EncryptedShareFolder, 'password'>
+
+export type NasDeviceInfo = Omit<NasDevice, 'password'> & {
+  shareFolders: ShareFolderInfo[]
+}
 
 export type AddNasParams = Omit<
   NasDevice,

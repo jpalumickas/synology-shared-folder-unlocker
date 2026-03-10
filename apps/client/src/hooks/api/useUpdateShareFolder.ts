@@ -1,5 +1,4 @@
 import { useMutation, useQueryClient } from '@tanstack/react-query'
-import type { EncryptedShareFolder } from '@synology-shared-folder-unlocker/config'
 import { toast } from '@synology-shared-folder-unlocker/theme'
 import { apiClient } from '../../services/apiClient'
 import { queryKeys } from './queryKeys'
@@ -11,18 +10,18 @@ export function useUpdateShareFolder() {
     mutationFn: ({
       nasId,
       shareFolderId,
-      data,
+      password,
     }: {
       nasId: string
       shareFolderId: string
-      data: Partial<EncryptedShareFolder>
-    }) => apiClient.updateShareFolder(nasId, shareFolderId, data),
+      password: string
+    }) => apiClient.updateShareFolderPassword(nasId, shareFolderId, password),
     onSuccess: () => {
-      toast.success('Share folder updated')
+      toast.success('Share folder password updated')
       queryClient.invalidateQueries({ queryKey: queryKeys.nasList })
     },
     onError: () => {
-      toast.error('Failed to update share folder')
+      toast.error('Failed to update share folder password')
     },
   })
 

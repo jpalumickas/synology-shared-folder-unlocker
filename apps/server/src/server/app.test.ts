@@ -183,6 +183,73 @@ describe('NAS API password stripping', () => {
   })
 })
 
+describe('Share folder API password stripping', () => {
+  beforeEach(() => {
+    vi.mocked(store.requireConfig).mockReturnValue(
+      makeConfig([
+        makeNas({
+          shareFolders: [
+            { id: 'sf-1', name: 'photos', password: 'secret-enc-pw' },
+          ],
+        }),
+      ])
+    )
+    resetRateLimit()
+  })
+
+  it('GET /api/nas strips share folder passwords', async () => {
+    const { status, body } = await apiRequest('/nas')
+
+    expect(status).toBe(200)
+    const nas = body[0] as Record<string, unknown>
+    const shareFolders = nas.shareFolders as Record<string, unknown>[]
+    expect(shareFolders).toHaveLength(1)
+    expect(shareFolders[0]).toHaveProperty('id', 'sf-1')
+    expect(shareFolders[0]).toHaveProperty('name', 'photos')
+    expect(shareFolders[0]).not.toHaveProperty('password')
+  })
+
+  it('POST /api/nas/:nasId/share-folders strips password from response', async () => {
+    const { status, body } = await apiRequest('/nas/nas-1/share-folders', {
+      method: 'POST',
+      body: JSON.stringify({ name: 'videos', password: 'my-enc-pw' }),
+    })
+
+    expect(status).toBe(201)
+    expect(body).toHaveProperty('name', 'videos')
+    expect(body).not.toHaveProperty('password')
+  })
+
+  it('PUT /api/nas/:nasId/share-folders/:id strips password from response', async () => {
+    const { status, body } = await apiRequest('/nas/nas-1/share-folders/sf-1', {
+      method: 'PUT',
+      body: JSON.stringify({ password: 'new-enc-pw' }),
+    })
+
+    expect(status).toBe(200)
+    expect(body).toHaveProperty('name', 'photos')
+    expect(body).not.toHaveProperty('password')
+  })
+
+  it('PUT /api/nas/:nasId/share-folders/:id rejects missing password', async () => {
+    const { status } = await apiRequest('/nas/nas-1/share-folders/sf-1', {
+      method: 'PUT',
+      body: JSON.stringify({}),
+    })
+
+    expect(status).toBe(400)
+  })
+
+  it('PUT /api/nas/:nasId/share-folders/:id rejects empty password', async () => {
+    const { status } = await apiRequest('/nas/nas-1/share-folders/sf-1', {
+      method: 'PUT',
+      body: JSON.stringify({ password: '' }),
+    })
+
+    expect(status).toBe(400)
+  })
+})
+
 describe('Rate limiting', () => {
   beforeEach(() => {
     resetRateLimit()
