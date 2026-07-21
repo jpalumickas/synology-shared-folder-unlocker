@@ -4,7 +4,7 @@ A self-hosted web application that automatically unlocks encrypted shared folder
 
 ## Why
 
-Synology encrypted shared folders lock themselves whenever the NAS restarts. You normally have to log into DSM and manually type in each folder's encryption password. This tool runs as a background service, watches your folders, and re-mounts them automatically — so your shares come back online without manual intervention.
+Synology encrypted shared folders lock themselves whenever the NAS restarts. You normally have to log into DSM and manually type in each folder's encryption password. This tool runs as a background service, watches your folders, and re-mounts them automatically - so your shares come back online without manual intervention.
 
 ## Features
 

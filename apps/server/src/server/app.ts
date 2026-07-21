@@ -24,7 +24,10 @@ import {
 } from '@synology-shared-folder-unlocker/config'
 
 function setSessionCookie(c: Context, token: string) {
-  const isSecure = new URL(c.req.url).protocol === 'https:'
+  const proto =
+    c.req.header('x-forwarded-proto') ||
+    new URL(c.req.url).protocol.replace(':', '')
+  const isSecure = proto === 'https'
   setCookie(c, 'session', token, {
     httpOnly: true,
     sameSite: 'Strict',
