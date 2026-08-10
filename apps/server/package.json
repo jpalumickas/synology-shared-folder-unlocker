@@ -5,7 +5,7 @@
   "type": "module",
   "scripts": {
     "dev": "tsx watch src/server/index.ts",
-    "build": "tsup",
+    "build": "tsdown",
     "start": "NODE_ENV=production node dist/server/index.mjs",
     "typecheck": "tsc --noEmit"
   },
@@ -18,7 +18,7 @@
   },
   "devDependencies": {
     "@types/node": "^26.2.0",
-    "tsup": "^8.5.1",
+    "tsdown": "^0.22.14",
     "tsx": "^4.23.11",
     "typescript": "^7.0.2"
   }

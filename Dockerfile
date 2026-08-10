@@ -16,7 +16,7 @@ RUN pnpm install --frozen-lockfile
 
 COPY . .
 
-# Build client (Vite) then server (tsup)
+# Build client (Vite) then server (tsdown)
 RUN pnpm --filter @synology-shared-folder-unlocker/client build
 RUN pnpm --filter @synology-shared-folder-unlocker/server build
 
