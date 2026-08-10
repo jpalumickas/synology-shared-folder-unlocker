@@ -2,8 +2,23 @@ import { store } from './store.ts'
 import { checkShareFolderStatus, unlockShareFolder } from './ssh.ts'
 
 let pollInterval: ReturnType<typeof setInterval> | null = null
+let inFlightPoll: Promise<void> | null = null
 
-export async function pollOnce(): Promise<void> {
+// Callers share a single run so a background poll (e.g. right after unlock)
+// cannot overlap with the interval poller or a manual "poll now".
+export function pollOnce(): Promise<void> {
+  if (inFlightPoll) {
+    return inFlightPoll
+  }
+
+  inFlightPoll = runPoll().finally(() => {
+    inFlightPoll = null
+  })
+
+  return inFlightPoll
+}
+
+async function runPoll(): Promise<void> {
   const config = store.getConfig()
   if (!config) {
     return

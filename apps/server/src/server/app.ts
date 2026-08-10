@@ -153,8 +153,14 @@ api.post('/unlock', rateLimitAuth, async (c) => {
     const sessionToken = store.unlock(config, password)
     setSessionCookie(c, sessionToken)
 
-    await pollOnce()
     startPoller()
+    // Checking and unlocking every share folder over SSH can take a while, so
+    // the first poll runs in the background - the UI reaches the dashboard
+    // right away and picks up statuses as they land.
+    void pollOnce().catch((err: unknown) => {
+      console.error('[Unlock] Initial poll failed:', err)
+    })
+
     return c.json({ success: true })
   } catch {
     return c.json({ error: 'Invalid password' }, 401)

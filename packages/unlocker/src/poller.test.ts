@@ -142,6 +142,39 @@ describe('pollOnce', () => {
     expect(statuses[0].error).toBe('Unknown error')
   })
 
+  it('shares a single run between concurrent callers', async () => {
+    store.unlock(config, 'pw')
+    let resolveFirst: (status: string) => void = () => {}
+    mockCheckShareFolderStatus
+      .mockImplementationOnce(
+        () =>
+          new Promise<string>((resolve) => {
+            resolveFirst = resolve
+          })
+      )
+      .mockResolvedValue('unlocked')
+
+    const first = pollOnce()
+    const second = pollOnce()
+
+    expect(second).toBe(first)
+
+    resolveFirst('unlocked')
+    await Promise.all([first, second])
+
+    expect(mockCheckShareFolderStatus).toHaveBeenCalledTimes(2)
+  })
+
+  it('polls again once the previous run finished', async () => {
+    store.unlock(config, 'pw')
+    mockCheckShareFolderStatus.mockResolvedValue('unlocked')
+
+    await pollOnce()
+    await pollOnce()
+
+    expect(mockCheckShareFolderStatus).toHaveBeenCalledTimes(4)
+  })
+
   it('updates status to error when check returns error', async () => {
     store.unlock(config, 'pw')
     mockCheckShareFolderStatus.mockResolvedValue('error')

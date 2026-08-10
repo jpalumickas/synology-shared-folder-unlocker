@@ -8,6 +8,7 @@ vi.mock('@synology-shared-folder-unlocker/unlocker', () => ({
   store: {
     isUnlocked: true,
     isSessionValid: () => true,
+    unlock: vi.fn().mockReturnValue('session-token'),
     requireConfig: vi.fn(),
     requireMasterPassword: () => 'master',
     updateConfig: vi.fn(),
@@ -17,7 +18,7 @@ vi.mock('@synology-shared-folder-unlocker/unlocker', () => ({
   },
   startPoller: vi.fn(),
   restartPoller: vi.fn(),
-  pollOnce: vi.fn(),
+  pollOnce: vi.fn().mockResolvedValue(undefined),
   unlockShareFolder: vi.fn(),
   fetchHostKey: vi.fn().mockResolvedValue({
     type: 'ssh-ed25519',
@@ -39,7 +40,8 @@ vi.mock('@synology-shared-folder-unlocker/config', async (importOriginal) => {
   }
 })
 
-const { store } = await import('@synology-shared-folder-unlocker/unlocker')
+const { store, pollOnce, startPoller } =
+  await import('@synology-shared-folder-unlocker/unlocker')
 const { loadConfig } = await import('@synology-shared-folder-unlocker/config')
 const { app, resetRateLimit } = await import('./app.js')
 
@@ -251,6 +253,47 @@ describe('Share folder API password stripping', () => {
     })
 
     expect(status).toBe(400)
+  })
+})
+
+describe('POST /unlock', () => {
+  beforeEach(() => {
+    resetRateLimit()
+    vi.mocked(pollOnce).mockClear()
+    vi.mocked(startPoller).mockClear()
+    vi.mocked(loadConfig).mockResolvedValue(makeConfig())
+  })
+
+  it('responds without waiting for the initial poll', async () => {
+    let resolvePoll: () => void = () => {}
+    vi.mocked(pollOnce).mockReturnValue(
+      new Promise<void>((resolve) => {
+        resolvePoll = resolve
+      })
+    )
+
+    const { status, body } = await apiRequest('/unlock', {
+      method: 'POST',
+      body: JSON.stringify({ password: 'master' }),
+    })
+
+    expect(status).toBe(200)
+    expect(body).toHaveProperty('success', true)
+    expect(pollOnce).toHaveBeenCalledTimes(1)
+    expect(startPoller).toHaveBeenCalledTimes(1)
+
+    resolvePoll()
+  })
+
+  it('still succeeds when the initial poll fails', async () => {
+    vi.mocked(pollOnce).mockRejectedValue(new Error('SSH unreachable'))
+
+    const { status } = await apiRequest('/unlock', {
+      method: 'POST',
+      body: JSON.stringify({ password: 'master' }),
+    })
+
+    expect(status).toBe(200)
   })
 })
 
