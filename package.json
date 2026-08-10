@@ -2,8 +2,8 @@
   "name": "@synology-shared-folder-unlocker/monorepo",
   "version": "0.1.1",
   "private": true,
-  "type": "module",
   "license": "MIT",
+  "type": "module",
   "scripts": {
     "dev": "concurrently -n server,client -c blue,green \"pnpm --filter @synology-shared-folder-unlocker/server dev\" \"pnpm --filter @synology-shared-folder-unlocker/client dev\"",
     "build": "pnpm --filter @synology-shared-folder-unlocker/client build && pnpm --filter @synology-shared-folder-unlocker/server build",
@@ -16,21 +16,18 @@
   },
   "devDependencies": {
     "@eslint/js": "^10.0.1",
-    "@testing-library/jest-dom": "^6.9.1",
+    "@testing-library/jest-dom": "^7.0.0",
     "@testing-library/react": "^16.3.2",
-    "@testing-library/user-event": "^14.6.1",
-    "@types/node": "^26.1.1",
+    "@testing-library/user-event": "^14.6.3",
+    "@types/node": "^26.2.0",
     "@vitest/coverage-v8": "^4.1.10",
-    "concurrently": "^10.0.3",
-    "eslint": "^10.7.0",
-    "jsdom": "^28.1.0",
-    "prettier": "^3.9.5",
-    "typescript": "^5.9.3",
-    "typescript-eslint": "^8.64.0",
+    "concurrently": "^10.0.4",
+    "eslint": "^10.8.1",
+    "jsdom": "^30.0.1",
+    "prettier": "^3.9.6",
+    "typescript": "^7.0.2",
+    "typescript-eslint": "^8.66.0",
     "vitest": "^4.1.10"
   },
-  "pnpm": {
-    "onlyBuiltDependencies": []
-  },
-  "packageManager": "pnpm@11.11.0+sha512.4463f65fd80ed80d69bc1d4bf163ee94f605c7380fc318bb5b2ebe15f8cd12d49c51a4d59e951b401e764d3b6ca751cbf51bc50ed7001a6bcb4935e684c34882"
+  "packageManager": "pnpm@11.21.0+sha512.521705bce689924eac72f5a3587122f362689ef6571e55ba80076fd637c11132ecffada26fad4ea79c485bfddbfd3d5a2a5b05805a77e893de71ec8a6cca3bb1"
 }

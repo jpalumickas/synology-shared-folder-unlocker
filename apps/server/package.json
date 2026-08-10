@@ -10,16 +10,16 @@
     "typecheck": "tsc --noEmit"
   },
   "dependencies": {
-    "@hono/node-server": "^2.0.10",
+    "@hono/node-server": "^2.1.0",
     "@synology-shared-folder-unlocker/config": "workspace:*",
     "@synology-shared-folder-unlocker/unlocker": "workspace:*",
-    "hono": "^4.12.31",
+    "hono": "^4.13.1",
     "ssh2": "^1.16.0"
   },
   "devDependencies": {
-    "@types/node": "^26.1.1",
+    "@types/node": "^26.2.0",
     "tsup": "^8.5.1",
-    "tsx": "^4.23.1",
-    "typescript": "^5.7.0"
+    "tsx": "^4.23.11",
+    "typescript": "^7.0.2"
   }
 }
