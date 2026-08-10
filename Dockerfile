@@ -1,4 +1,4 @@
-FROM node:25-alpine AS builder
+FROM node:26-alpine AS builder
 
 RUN npm install -g pnpm
 
@@ -29,7 +29,7 @@ RUN mkdir -p /prod/apps/server /prod/packages/config /prod/packages/unlocker && 
     cd /prod && CI=true pnpm install --frozen-lockfile --prod
 
 # --- Runner ---
-FROM node:25-alpine
+FROM node:26-alpine
 
 RUN apk add --no-cache su-exec && \
     deluser --remove-home node 2>/dev/null; \

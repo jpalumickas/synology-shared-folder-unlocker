@@ -180,7 +180,7 @@ describe('edge cases', () => {
         password: `pw-${i}`,
         hostKeyType: 'ssh-ed25519',
         hostFingerprint: `fp-${i}`,
-        shareFolders: Array.from({ length: 10 }, (_, j) => ({
+        shareFolders: Array.from({ length: 10 }, (__, j) => ({
           id: `sf-${i}-${j}`,
           name: `share-${j}`,
           password: `enc-${j}`,
