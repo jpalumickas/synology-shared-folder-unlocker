@@ -6,3 +6,6 @@ allowBuilds:
   esbuild: false
   msw: false
   ssh2: false
+permissions:
+  '@tanstack/react-router':
+    skills: true
